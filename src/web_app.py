@@ -16,11 +16,10 @@ logger.info("Loading configuration")
 config = load_config()
 logger.info("Configuration loaded successfully")
 
-logger.info("Initializing SyncManager")
-sync_manager = SyncManager(config)
-logger.info("SyncManager initialized successfully")
-
 logger.info("Flask app initialization complete")
+
+def get_sync_manager():
+    return SyncManager(config)
 
 @app.route('/')
 def index():
@@ -36,6 +35,7 @@ def send_static(path):
 def get_spotify_playlists():
     logger.info("Fetching Spotify playlists")
     try:
+        sync_manager = get_sync_manager()
         playlists = sync_manager.refresh_playlists('spotify')
         logger.info(f"Successfully fetched {len(playlists)} Spotify playlists")
         return jsonify(playlists), 200
@@ -47,6 +47,7 @@ def get_spotify_playlists():
 def get_tidal_playlists():
     logger.info("Fetching Tidal playlists")
     try:
+        sync_manager = get_sync_manager()
         playlists = sync_manager.refresh_playlists('tidal')
         logger.info(f"Successfully fetched {len(playlists)} Tidal playlists")
         return jsonify(playlists), 200
