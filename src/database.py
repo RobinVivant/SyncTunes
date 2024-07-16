@@ -27,33 +27,38 @@ class Database:
             raise
 
     def create_tables(self):
-        cursor = self.conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS playlists (
-                platform TEXT,
-                playlist_id TEXT,
-                name TEXT,
-                tracks INTEGER,
-                last_modified TEXT,
-                PRIMARY KEY (platform, playlist_id)
-            )
-        ''')
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tracks (
-                platform TEXT,
-                track_id TEXT,
-                metadata TEXT,
-                PRIMARY KEY (platform, track_id)
-            )
-        ''')
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS tokens (
-                platform TEXT PRIMARY KEY,
-                token TEXT,
-                expires_at TEXT
-            )
-        ''')
-        self.conn.commit()
+        conn = self.get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS playlists (
+                    platform TEXT,
+                    playlist_id TEXT,
+                    name TEXT,
+                    tracks INTEGER,
+                    last_modified TEXT,
+                    PRIMARY KEY (platform, playlist_id)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS tracks (
+                    platform TEXT,
+                    track_id TEXT,
+                    metadata TEXT,
+                    PRIMARY KEY (platform, track_id)
+                )
+            ''')
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS tokens (
+                    platform TEXT PRIMARY KEY,
+                    token TEXT,
+                    expires_at TEXT
+                )
+            ''')
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error(f"Error creating tables: {e}")
+            raise
 
     def cache_playlist(self, platform, playlist_id, last_modified):
         conn = self.get_connection()
@@ -74,15 +79,17 @@ class Database:
         return result[0] if result else None
 
     def cache_track(self, platform, track_id, metadata):
-        cursor = self.conn.cursor()
+        conn = self.get_connection()
+        cursor = conn.cursor()
         cursor.execute('''
             INSERT OR REPLACE INTO tracks (platform, track_id, metadata)
             VALUES (?, ?, ?)
         ''', (platform, track_id, str(metadata)))
-        self.conn.commit()
+        conn.commit()
 
     def get_cached_track(self, platform, track_id):
-        cursor = self.conn.cursor()
+        conn = self.get_connection()
+        cursor = conn.cursor()
         cursor.execute('''
             SELECT metadata FROM tracks
             WHERE platform = ? AND track_id = ?
@@ -91,15 +98,17 @@ class Database:
         return eval(result[0]) if result else None
 
     def store_token(self, platform, token, expires_at):
-        cursor = self.conn.cursor()
+        conn = self.get_connection()
+        cursor = conn.cursor()
         cursor.execute('''
             INSERT OR REPLACE INTO tokens (platform, token, expires_at)
             VALUES (?, ?, ?)
         ''', (platform, token, expires_at))
-        self.conn.commit()
+        conn.commit()
 
     def get_token(self, platform):
-        cursor = self.conn.cursor()
+        conn = self.get_connection()
+        cursor = conn.cursor()
         cursor.execute('''
             SELECT token, expires_at FROM tokens
             WHERE platform = ?
@@ -108,16 +117,18 @@ class Database:
         return result if result else (None, None)
 
     def cache_playlists(self, platform, playlists):
-        cursor = self.conn.cursor()
+        conn = self.get_connection()
+        cursor = conn.cursor()
         for playlist in playlists:
             cursor.execute('''
                 INSERT OR REPLACE INTO playlists (platform, playlist_id, name, tracks, last_modified)
                 VALUES (?, ?, ?, ?, ?)
             ''', (platform, playlist['id'], playlist['name'], playlist['tracks'], utils.get_current_timestamp()))
-        self.conn.commit()
+        conn.commit()
 
     def get_cached_playlists(self, platform):
-        cursor = self.conn.cursor()
+        conn = self.get_connection()
+        cursor = conn.cursor()
         cursor.execute('''
             SELECT playlist_id, name, tracks, last_modified FROM playlists
             WHERE platform = ?
