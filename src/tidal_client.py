@@ -25,43 +25,62 @@ class CallbackHandler(BaseHTTPRequestHandler):
 
 class TidalClient:
     def __init__(self, config):
+        logger.info("Initializing TidalClient")
         self.session = tidalapi.Session()
+        logger.info("TidalAPI Session created")
         self.config = config
+        logger.info("Config loaded")
         self.login()
+        logger.info("TidalClient initialization completed")
 
     def login(self):
         try:
+            logger.info("Starting Tidal login process")
             login, future = self.session.login_oauth()
+            logger.info("OAuth login initiated")
 
             # Open the authorization URL in a web browser
             webbrowser.open(login.verification_uri_complete)
+            logger.info("Authorization URL opened in web browser")
 
             # Start local server to listen for the callback
             server = HTTPServer(('localhost', 8888), CallbackHandler)
             server_thread = threading.Thread(target=server.handle_request)
             server_thread.start()
+            logger.info("Local server started to listen for callback")
 
             server_thread.join(timeout=60)  # Wait for a maximum of 60 seconds
+            logger.info("Waiting for server thread to complete")
 
             if server_thread.is_alive():
                 server.shutdown()
+                logger.error("Tidal authentication timed out")
                 raise AuthenticationError("Tidal authentication timed out")
 
             # Parse the callback URL
             parsed_url = urllib.parse.urlparse(server.path)
             query_params = urllib.parse.parse_qs(parsed_url.query)
+            logger.info("Callback URL parsed")
 
             # Check if the authentication was successful
             if 'code' in query_params:
+                logger.info("Authorization code received, waiting for future result")
                 future.result(timeout=30)  # Wait for a maximum of 30 seconds
+                logger.info("Future result received")
             elif 'error' in query_params:
+                logger.error(f"Failed to login to Tidal. Error: {query_params['error'][0]}")
                 raise AuthenticationError(f"Failed to login to Tidal. Error: {query_params['error'][0]}")
             else:
+                logger.error("Failed to login to Tidal. Authorization code not received.")
                 raise AuthenticationError("Failed to login to Tidal. Authorization code not received.")
 
             if not self.session.check_login():
+                logger.error("Failed to login to Tidal. Please check your credentials.")
                 raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
+            
+            logger.info("Tidal login successful")
         except Exception as e:
+            logger.exception(f"Tidal authentication failed: {str(e)}")
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
 
     def check_session(self):
