@@ -30,8 +30,8 @@ class TidalClient:
 
             if auth_code:
                 logger.info("Auth code provided, completing OAuth flow")
-                login_future = self.session.login_oauth()
-                login, future = login_future
+                self.login_future = self.session.login_oauth()
+                login, future = self.login_future
                 logger.info(f"OAuth login result: {login}")
                 logger.info(f"OAuth future result: {future}")
 
@@ -46,6 +46,7 @@ class TidalClient:
                 logger.info("No auth code provided, attempting to use stored token")
                 if not self.load_token():
                     logger.warning("No valid stored token found")
+                    self.login_future = self.get_auth_url()
                     return False
 
             return True
@@ -65,29 +66,29 @@ class TidalClient:
     def check_auth_status(self):
         if not hasattr(self, 'login_future') or self.login_future is None:
             logger.error("login_future is not initialized")
-            return 'failed'
+            self.login_future = self.get_auth_url()
+            return 'pending'
 
         try:
-            # Check if the login_future is properly initialized
-            if not isinstance(self.login_future, tuple) or len(self.login_future) < 2:
-                logger.error("login_future is not properly initialized")
-                return 'failed'
-
-            login, future = self.login_future
-
-            # Check if the future is done without blocking
-            if future.done():
-                login_result = future.result()
-                if login_result:
-                    self.session = login_result
-                    expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
-                    self.db.store_token('tidal', self.session.access_token, expiry_time_str)
-                    logger.info("Tidal login successful")
-                    return 'success'
+            # Check if the login_future is a tuple (as returned by login_oauth)
+            if isinstance(self.login_future, tuple) and len(self.login_future) == 2:
+                login, future = self.login_future
+                # Check if the future is done without blocking
+                if future.done():
+                    login_result = future.result()
+                    if login_result:
+                        self.session = login_result
+                        expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
+                        self.db.store_token('tidal', self.session.access_token, expiry_time_str)
+                        logger.info("Tidal login successful")
+                        return 'success'
+                    else:
+                        logger.error("Tidal login failed")
+                        return 'failed'
                 else:
-                    logger.error("Tidal login failed")
-                    return 'failed'
+                    return 'pending'
             else:
+                # If login_future is not a tuple, it's likely the auth URL
                 return 'pending'
         except Exception as e:
             logger.error(f"Error checking Tidal auth status: {str(e)}")
