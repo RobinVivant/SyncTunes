@@ -135,6 +135,7 @@ def tidal_auth():
     logger.info("Initiating Tidal authentication")
     sync_manager = get_sync_manager()
     auth_url = sync_manager.tidal.get_auth_url()
+    logger.info(f"Tidal auth URL: {auth_url}")
     return redirect(auth_url)
 
 
