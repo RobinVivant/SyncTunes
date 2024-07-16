@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from src.spotify_client import SpotifyClient
+from spotify_client import SpotifyClient
 
 class TestSpotifyClient(unittest.TestCase):
     def setUp(self):

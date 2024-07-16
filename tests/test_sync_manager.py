@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from sync_manager import SyncManager, SyncError
+from src.sync_manager import SyncManager, SyncError
 
 class TestSyncManager(unittest.TestCase):
     def setUp(self):

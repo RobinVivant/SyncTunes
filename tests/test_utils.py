@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-import utils
+from src import utils
 
 class TestUtils(unittest.TestCase):
     @patch('logging.warning')

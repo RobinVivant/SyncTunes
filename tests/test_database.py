@@ -1,6 +1,6 @@
 import unittest
 import os
-from src.database import Database
+from database import Database
 
 class TestDatabase(unittest.TestCase):
     def setUp(self):
