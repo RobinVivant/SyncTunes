@@ -1,8 +1,10 @@
 import tidalapi
 from tidalapi.exceptions import TidalError
 
+
 class AuthenticationError(Exception):
     pass
+
 
 class PlaylistModificationError(Exception):
     pass
