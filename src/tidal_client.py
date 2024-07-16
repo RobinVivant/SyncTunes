@@ -191,10 +191,13 @@ class TidalClient:
             logger.error(f"Error searching for tracks: {str(e)}")
             return []
 
-    def disconnect(self):
-        self.session = None
-        self.login_future = None
-        self.db.clear_cached_playlists('tidal')
-        self.db.clear_cached_tracks('tidal')
-        self.db.clear_token('tidal')
-        logger.info("Tidal client disconnected and database records purged")
+    def disconnect(self, platform):
+        if platform == 'tidal':
+            self.session = None
+            self.login_future = None
+            self.db.clear_cached_playlists('tidal')
+            self.db.clear_cached_tracks('tidal')
+            self.db.clear_token('tidal')
+            logger.info("Tidal client disconnected and database records purged")
+        else:
+            logger.warning(f"Attempted to disconnect {platform} from TidalClient")

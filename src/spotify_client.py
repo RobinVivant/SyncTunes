@@ -79,14 +79,17 @@ class SpotifyClient:
         )
         return self.auth_manager.get_authorize_url()
 
-    def disconnect(self):
-        self.sp = None
-        self.auth_manager = None
-        self.token_info = None
-        self.db.clear_cached_playlists('spotify')
-        self.db.clear_cached_tracks('spotify')
-        self.db.clear_token('spotify')
-        logger.info("Spotify client disconnected and database records purged")
+    def disconnect(self, platform):
+        if platform == 'spotify':
+            self.sp = None
+            self.auth_manager = None
+            self.token_info = None
+            self.db.clear_cached_playlists('spotify')
+            self.db.clear_cached_tracks('spotify')
+            self.db.clear_token('spotify')
+            logger.info("Spotify client disconnected and database records purged")
+        else:
+            logger.warning(f"Attempted to disconnect {platform} from SpotifyClient")
 
     @utils.retry_with_backoff()
     def get_playlists(self):

@@ -167,11 +167,10 @@ def disconnect(platform):
     
     sync_manager = get_sync_manager()
     if platform == 'spotify':
-        sync_manager.spotify.disconnect()
+        sync_manager.spotify.disconnect(platform)
     else:
-        sync_manager.tidal.disconnect()
+        sync_manager.tidal.disconnect(platform)
     
-    sync_manager.clear_cached_data(platform)
     return jsonify({"message": f"{platform.capitalize()} disconnected successfully"}), 200
 
 @app.route('/callback/spotify')
