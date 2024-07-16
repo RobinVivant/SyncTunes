@@ -2,7 +2,6 @@ import logging
 import threading
 import urllib.parse
 import webbrowser
-import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import spotipy
@@ -29,12 +28,7 @@ class SpotifyClient:
         self.authenticate()
 
     def authenticate(self):
-        # Find an available port
-        with socket.socket() as s:
-            s.bind(('', 0))
-            port = s.getsockname()[1]
-
-        redirect_uri = f"http://localhost:{port}/callback"
+        redirect_uri = "http://localhost:8888/callback"
 
         auth_manager = SpotifyOAuth(
             client_id=self.config['spotify']['client_id'],
@@ -48,7 +42,7 @@ class SpotifyClient:
         webbrowser.open(auth_url)
 
         # Start local server to listen for the callback
-        server = HTTPServer(('localhost', port), CallbackHandler)
+        server = HTTPServer(('localhost', 8888), CallbackHandler)
         server_thread = threading.Thread(target=server.handle_request)
         server_thread.start()
 
