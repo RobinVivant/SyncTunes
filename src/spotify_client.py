@@ -83,7 +83,10 @@ class SpotifyClient:
         self.sp = None
         self.auth_manager = None
         self.token_info = None
-        logger.info("Spotify client disconnected")
+        self.db.clear_cached_playlists('spotify')
+        self.db.clear_cached_tracks('spotify')
+        self.db.clear_token('spotify')
+        logger.info("Spotify client disconnected and database records purged")
 
     @utils.retry_with_backoff()
     def get_playlists(self):

@@ -194,4 +194,7 @@ class TidalClient:
     def disconnect(self):
         self.session = None
         self.login_future = None
-        logger.info("Tidal client disconnected")
+        self.db.clear_cached_playlists('tidal')
+        self.db.clear_cached_tracks('tidal')
+        self.db.clear_token('tidal')
+        logger.info("Tidal client disconnected and database records purged")
