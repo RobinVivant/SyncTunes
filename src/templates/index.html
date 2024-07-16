@@ -94,7 +94,7 @@
     <h1>Spotify-Tidal Playlist Sync</h1>
     <div class="auth-buttons">
         <a href="/spotify_auth" class="auth-button spotify" target="_blank">Connect Spotify</a>
-        <a href="/tidal_auth" class="auth-button tidal" target="_blank" rel="noopener noreferrer">Connect Tidal</a>
+        <a href="#" class="auth-button tidal" id="tidalAuthButton">Connect Tidal</a>
     </div>
     <div class="playlist-container">
         <div class="playlist-list" id="spotifyPlaylists" ondrop="drop(event, 'spotify')" ondragover="allowDrop(event)">
@@ -123,6 +123,27 @@
             messageElement.innerText = message;
             messageElement.style.backgroundColor = isError ? '#ff4444' : '#1DB954';
             messageElement.style.color = 'white';
+        }
+
+        function checkTidalAuthStatus() {
+            console.log('Checking Tidal auth status...');
+            axios.get('/check_tidal_auth')
+                .then(response => {
+                    if (response.data.status === 'success') {
+                        showMessage('Tidal authentication successful!');
+                        loadPlaylists();
+                    } else if (response.data.status === 'pending') {
+                        showMessage('Waiting for Tidal authentication...', false);
+                        setTimeout(checkTidalAuthStatus, 2000);
+                    } else {
+                        showMessage('Tidal authentication failed. Please try again.', true);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking Tidal auth status:', error);
+                    showMessage('Error checking Tidal authentication status.', true);
+                    setTimeout(checkTidalAuthStatus, 5000);  // Retry after 5 seconds on error
+                });
         }
 
         function loadPlaylists() {
@@ -241,6 +262,20 @@
 
         // Load playlists when the page loads
         window.onload = loadPlaylists;
+
+        // Add event listener for Tidal auth button
+        document.getElementById('tidalAuthButton').addEventListener('click', function(event) {
+            event.preventDefault();
+            axios.get('/tidal_auth')
+                .then(response => {
+                    window.open(response.data.auth_url, '_blank');
+                    checkTidalAuthStatus();
+                })
+                .catch(error => {
+                    console.error('Error initiating Tidal auth:', error);
+                    showMessage('Error initiating Tidal authentication.', true);
+                });
+        });
     </script>
 </body>
 </html>
