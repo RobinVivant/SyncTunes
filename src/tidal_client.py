@@ -29,11 +29,15 @@ class TidalClient:
 
             if auth_code:
                 logger.info("Auth code provided, completing OAuth flow")
-                expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
-                self.session.load_oauth_session(auth_code, expiry_time_str)
+                login, future = self.session.login_oauth(auth_code)
+                logger.info(f"OAuth login result: {login}")
+                logger.info(f"OAuth future result: {future}")
+                
                 if not self.session.check_login():
                     logger.error("Failed to login to Tidal. Please check your credentials.")
-                    raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
+                    return False
+                
+                expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
                 self.db.store_token('tidal', self.session.access_token, expiry_time_str)
                 logger.info("Tidal login successful")
             else:
@@ -45,10 +49,10 @@ class TidalClient:
             return True
         except tidalapi.exceptions.AuthenticationError as e:
             logger.error(f"Tidal authentication failed: {str(e)}")
-            raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
+            return False
         except Exception as e:
             logger.exception(f"Unexpected error during Tidal authentication: {str(e)}")
-            raise AuthenticationError(f"Unexpected error during Tidal authentication: {str(e)}")
+            return False
 
     def get_auth_url(self):
         self.session = tidalapi.Session()

@@ -156,13 +156,20 @@ def spotify_callback():
 def tidal_callback():
     logger.info("Tidal callback received")
     code = request.args.get('code')
+    logger.info(f"Received Tidal auth code: {code}")
     sync_manager = get_sync_manager()
     try:
-        sync_manager.tidal.login(code)
-        return redirect(url_for('index'))
+        result = sync_manager.tidal.login(code)
+        logger.info(f"Tidal login result: {result}")
+        if result:
+            logger.info("Tidal authentication successful")
+            return redirect(url_for('index'))
+        else:
+            logger.error("Tidal authentication failed: login returned False")
+            return jsonify({"error": "Tidal authentication failed"}), 500
     except Exception as e:
-        logger.error(f"Tidal authentication failed: {str(e)}")
-        return jsonify({"error": "Tidal authentication failed"}), 500
+        logger.exception(f"Tidal authentication failed with exception: {str(e)}")
+        return jsonify({"error": f"Tidal authentication failed: {str(e)}"}), 500
 
 
 if __name__ == '__main__':
