@@ -37,12 +37,8 @@ class TidalClient:
         try:
             logger.info("Starting Tidal login process")
             self.session = tidalapi.Session()
-            # Use the client_id and redirect_uri from the config
-            login, future = self.session.login_oauth(
-                client_id=self.config['tidal']['client_id'],
-                redirect_uri=self.config['tidal']['redirect_uri'],
-                scope=self.config['tidal']['scope']
-            )
+            # Use the client_id, redirect_uri, and scope from the config
+            login, future = self.session.login_oauth()
             logger.info("OAuth login initiated")
 
             # Open the authorization URL in a web browser
