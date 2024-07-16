@@ -130,9 +130,11 @@
             if (isConnected) {
                 button.textContent = `Disconnect ${platform.charAt(0).toUpperCase() + platform.slice(1)}`;
                 button.classList.add('connected');
+                button.onclick = () => disconnectService(platform);
             } else {
                 button.textContent = `Connect ${platform.charAt(0).toUpperCase() + platform.slice(1)}`;
                 button.classList.remove('connected');
+                button.onclick = platform === 'spotify' ? () => window.open('/spotify_auth', '_blank') : () => initiateTidalAuth();
             }
         }
 
@@ -145,6 +147,30 @@
                 .catch(error => {
                     console.error('Error checking connection status:', error);
                 });
+        }
+
+        function disconnectService(platform) {
+            showLoading();
+            axios.post(`/disconnect/${platform}`)
+                .then(response => {
+                    showMessage(`${platform.charAt(0).toUpperCase() + platform.slice(1)} disconnected successfully`);
+                    updateButtonState(platform, false);
+                    clearPlaylistList(platform);
+                })
+                .catch(error => {
+                    console.error(`Error disconnecting ${platform}:`, error);
+                    showMessage(`Error disconnecting ${platform}. Please try again.`, true);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
+        }
+
+        function clearPlaylistList(platform) {
+            const listId = `${platform}Playlists`;
+            const list = document.getElementById(listId);
+            list.innerHTML = `<h2>${platform.charAt(0).toUpperCase() + platform.slice(1)} Playlists</h2>
+                              <button onclick="refreshPlaylists('${platform}')">Refresh ${platform.charAt(0).toUpperCase() + platform.slice(1)} Playlists</button>`;
         }
 
         function checkTidalAuthStatus() {

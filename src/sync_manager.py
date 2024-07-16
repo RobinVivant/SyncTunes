@@ -28,6 +28,12 @@ class SyncManager:
         self.tidal.load_token()  # Try to load existing token
         logger.info("TidalClient initialized")
 
+    def clear_cached_data(self, platform):
+        logger.info(f"Clearing cached data for {platform}")
+        self.db.clear_cached_playlists(platform)
+        self.db.clear_cached_tracks(platform)
+        self.db.clear_token(platform)
+
     def sync_all_playlists(self):
         spotify_playlists = self.spotify.get_playlists()
         tidal_playlists = self.tidal.get_playlists()

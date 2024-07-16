@@ -160,6 +160,20 @@ def connection_status():
         "tidal": tidal_connected
     })
 
+@app.route('/disconnect/<platform>', methods=['POST'])
+def disconnect(platform):
+    if platform not in ['spotify', 'tidal']:
+        return jsonify({"error": "Invalid platform"}), 400
+    
+    sync_manager = get_sync_manager()
+    if platform == 'spotify':
+        sync_manager.spotify.disconnect()
+    else:
+        sync_manager.tidal.disconnect()
+    
+    sync_manager.clear_cached_data(platform)
+    return jsonify({"message": f"{platform.capitalize()} disconnected successfully"}), 200
+
 @app.route('/callback/spotify')
 def spotify_callback():
     logger.info("Spotify callback received")

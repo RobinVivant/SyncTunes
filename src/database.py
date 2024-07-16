@@ -134,3 +134,21 @@ class Database:
             WHERE platform = ?
         ''', (platform,))
         return [{'id': row[0], 'name': row[1], 'tracks': row[2], 'last_modified': row[3]} for row in cursor.fetchall()]
+
+    def clear_cached_playlists(self, platform):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM playlists WHERE platform = ?', (platform,))
+        conn.commit()
+
+    def clear_cached_tracks(self, platform):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM tracks WHERE platform = ?', (platform,))
+        conn.commit()
+
+    def clear_token(self, platform):
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM tokens WHERE platform = ?', (platform,))
+        conn.commit()
