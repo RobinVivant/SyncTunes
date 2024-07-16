@@ -25,6 +25,15 @@ class TestTidalClient(unittest.TestCase):
             self.tidal_client.login()
 
     @patch('tidalapi.Session')
+    @patch('webbrowser.open')
+    @patch('http.server.HTTPServer')
+    def test_login_error_response(self, mock_server, mock_webbrowser, mock_session):
+        mock_server.return_value.path = '/?error=access_denied'
+        with self.assertRaises(AuthenticationError) as context:
+            self.tidal_client.login()
+        self.assertIn("Error: access_denied", str(context.exception))
+
+    @patch('tidalapi.Session')
     def test_get_playlists(self, mock_session):
         mock_playlist = MagicMock()
         mock_playlist.id = '1'

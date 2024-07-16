@@ -26,6 +26,19 @@ class TestSpotifyClient(unittest.TestCase):
 
         mock_spotify.assert_called_once_with(auth="test_token")
 
+    @patch('spotify_client.SpotifyOAuth')
+    @patch('spotify_client.spotipy.Spotify')
+    def test_authenticate_failure(self, mock_spotify, mock_spotify_oauth):
+        mock_auth_manager = MagicMock()
+        mock_auth_manager.get_authorize_url.return_value = "http://example.com/auth"
+        mock_auth_manager.get_access_token.side_effect = Exception("Token error")
+        mock_spotify_oauth.return_value = mock_auth_manager
+
+        with patch('builtins.print'), patch('spotify_client.HTTPServer'), patch('threading.Thread'):
+            with self.assertRaises(Exception) as context:
+                self.spotify_client.authenticate()
+            self.assertIn("Failed to get access token: Token error", str(context.exception))
+
     @patch('spotipy.Spotify')
     def test_get_playlists(self, mock_spotify):
         mock_spotify.return_value.current_user_playlists.return_value = {

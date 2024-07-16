@@ -92,12 +92,13 @@ class SyncManager:
 
         except (AuthenticationError, PlaylistModificationError) as e:
             logger.error(f"Error syncing playlist {playlist['name']}: {str(e)}")
+            raise SyncError(f"Error syncing playlist {playlist['name']}: {str(e)}")
         except (ValueError, KeyError) as e:
             logger.error(f"Data error syncing playlist {playlist['name']}: {str(e)}")
+            raise SyncError(f"Data error syncing playlist {playlist['name']}: {str(e)}")
         except IOError as e:
             logger.error(f"I/O error syncing playlist {playlist['name']}: {str(e)}")
+            raise SyncError(f"I/O error syncing playlist {playlist['name']}: {str(e)}")
         except Exception as e:
             logger.exception(f"Unexpected error syncing playlist {playlist['name']}: {str(e)}")
-        finally:
-            # Consider adding cleanup or finalization code here if needed
-            pass
+            raise SyncError(f"Unexpected error syncing playlist {playlist['name']}: {str(e)}")

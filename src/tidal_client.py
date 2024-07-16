@@ -54,6 +54,8 @@ class TidalClient:
             # Check if the authentication was successful
             if 'code' in query_params:
                 future.result(timeout=30)  # Wait for a maximum of 30 seconds
+            elif 'error' in query_params:
+                raise AuthenticationError(f"Failed to login to Tidal. Error: {query_params['error'][0]}")
             else:
                 raise AuthenticationError("Failed to login to Tidal. Authorization code not received.")
 

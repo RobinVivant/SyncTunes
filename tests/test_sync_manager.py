@@ -54,8 +54,9 @@ class TestSyncManager(unittest.TestCase):
         playlist = {'id': '1', 'name': 'Playlist 1'}
         mock_spotify.return_value.get_playlist_tracks.side_effect = Exception("API Error")
         
-        with self.assertRaises(SyncError):
+        with self.assertRaises(SyncError) as context:
             self.sync_manager.sync_playlist(playlist)
+        self.assertIn("Unexpected error syncing playlist Playlist 1: API Error", str(context.exception))
 
     @patch('sync_manager.utils.find_matching_track')
     @patch('sync_manager.SpotifyClient')

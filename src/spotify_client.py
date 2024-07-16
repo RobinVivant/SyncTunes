@@ -51,8 +51,11 @@ class SpotifyClient:
         code = query_params.get('code', [None])[0]
 
         if code:
-            token_info = auth_manager.get_access_token(code)
-            self.sp = spotipy.Spotify(auth=token_info['access_token'])
+            try:
+                token_info = auth_manager.get_access_token(code)
+                self.sp = spotipy.Spotify(auth=token_info['access_token'])
+            except Exception as e:
+                raise Exception(f"Failed to get access token: {str(e)}")
         else:
             raise Exception("Failed to get authorization code")
 
