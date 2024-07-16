@@ -49,8 +49,12 @@ def main():
     except SyncError as e:
         print(f"Sync error: {str(e)}")
         sys.exit(1)
+    except (ValueError, IOError, KeyError) as e:
+        print(f"Configuration or I/O error: {str(e)}")
+        sys.exit(1)
     except Exception as e:
         print(f"An unexpected error occurred: {str(e)}")
+        logger.exception("Unexpected error in main")
         sys.exit(1)
 
 

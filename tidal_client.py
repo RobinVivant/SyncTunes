@@ -55,8 +55,13 @@ class TidalClient:
             raise PlaylistModificationError(f"Playlist or track not found: {str(e)}")
         except TooManyRequests as e:
             raise PlaylistModificationError(f"Too many requests to Tidal API: {str(e)}")
+        except (ValueError, KeyError) as e:
+            raise PlaylistModificationError(f"Invalid data when adding tracks to Tidal playlist: {str(e)}")
+        except IOError as e:
+            raise PlaylistModificationError(f"I/O error when adding tracks to Tidal playlist: {str(e)}")
         except Exception as e:
-            raise PlaylistModificationError(f"Failed to add tracks to Tidal playlist: {str(e)}")
+            logger.exception("Unexpected error when adding tracks to Tidal playlist")
+            raise PlaylistModificationError(f"Unexpected error when adding tracks to Tidal playlist: {str(e)}")
 
     def remove_tracks_from_playlist(self, playlist_id, track_ids):
         try:
@@ -67,8 +72,13 @@ class TidalClient:
             raise PlaylistModificationError(f"Playlist or track not found: {str(e)}")
         except TooManyRequests as e:
             raise PlaylistModificationError(f"Too many requests to Tidal API: {str(e)}")
+        except (ValueError, KeyError) as e:
+            raise PlaylistModificationError(f"Invalid data when removing tracks from Tidal playlist: {str(e)}")
+        except IOError as e:
+            raise PlaylistModificationError(f"I/O error when removing tracks from Tidal playlist: {str(e)}")
         except Exception as e:
-            raise PlaylistModificationError(f"Failed to remove tracks from Tidal playlist: {str(e)}")
+            logger.exception("Unexpected error when removing tracks from Tidal playlist")
+            raise PlaylistModificationError(f"Unexpected error when removing tracks from Tidal playlist: {str(e)}")
 
     def get_playlist_by_name(self, name):
         playlists = self.get_playlists()
