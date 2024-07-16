@@ -5,6 +5,7 @@ import utils
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 import urllib.parse
+import webbrowser
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,7 @@ class SpotifyClient:
         )
         
         auth_url = auth_manager.get_authorize_url()
-        print(f"Please visit this URL to authorize the application: {auth_url}")
+        webbrowser.open(auth_url)
 
         # Start local server to listen for the callback
         server = HTTPServer(('localhost', 8888), CallbackHandler)

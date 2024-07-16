@@ -15,15 +15,20 @@ class TestSpotifyClient(unittest.TestCase):
 
     @patch('spotify_client.SpotifyOAuth')
     @patch('spotify_client.spotipy.Spotify')
-    def test_authenticate(self, mock_spotify, mock_spotify_oauth):
+    @patch('webbrowser.open')
+    @patch('spotify_client.HTTPServer')
+    def test_authenticate(self, mock_server, mock_webbrowser, mock_spotify, mock_spotify_oauth):
         mock_auth_manager = MagicMock()
         mock_auth_manager.get_authorize_url.return_value = "http://example.com/auth"
         mock_auth_manager.get_access_token.return_value = {"access_token": "test_token"}
         mock_spotify_oauth.return_value = mock_auth_manager
 
-        with patch('builtins.print'), patch('spotify_client.HTTPServer'), patch('threading.Thread'):
-            self.spotify_client.authenticate()
+        mock_server.return_value.path = '/callback?code=test_code'
 
+        self.spotify_client.authenticate()
+
+        mock_webbrowser.assert_called_once_with("http://example.com/auth")
+        mock_auth_manager.get_access_token.assert_called_once_with('test_code')
         mock_spotify.assert_called_once_with(auth="test_token")
 
     @patch('spotify_client.SpotifyOAuth')
