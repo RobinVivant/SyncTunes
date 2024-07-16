@@ -9,11 +9,6 @@ setup(
         "tidalapi==0.7.0",
         "PyYAML==6.0",
     ],
-    extras_require={
-        "dev": [
-            "flake8==3.9.2",
-        ],
-    },
     entry_points={
         "console_scripts": [
             "spotify-tidal-sync=main:main",
