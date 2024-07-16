@@ -46,6 +46,9 @@ class TidalClient:
             webbrowser.open(auth_url)
             logger.info("Authorization URL provided to user")
 
+            # Give the browser some time to open
+            time.sleep(2)
+
             # Start local server to listen for the callback
             server = HTTPServer(('localhost', 8888), CallbackHandler)
             server_thread = threading.Thread(target=server.handle_request)
