@@ -1,6 +1,7 @@
 # Spotify-Tidal Playlist Sync
 
-This project is a command-line tool that allows bidirectional synchronization of playlists between Spotify and Tidal music streaming platforms.
+This project is a command-line tool that allows bidirectional synchronization of playlists between Spotify and Tidal
+music streaming platforms.
 
 ## Features
 
@@ -30,11 +31,13 @@ This project is a command-line tool that allows bidirectional synchronization of
 ## Usage
 
 To sync all playlists:
+
 ```
 python main.py --all
 ```
 
 To sync specific playlists:
+
 ```
 python main.py --playlists "Playlist1" "Playlist2"
 ```

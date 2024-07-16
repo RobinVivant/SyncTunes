@@ -1,9 +1,5 @@
 import tidalapi
-from tidalapi.exceptions import TidalError
-
-
-class AuthenticationError(Exception):
-    pass
+from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
 
 
 class PlaylistModificationError(Exception):
@@ -17,9 +13,12 @@ class TidalClient:
         self.login()
 
     def login(self):
-        login_success = self.session.login(self.config['tidal']['username'], self.config['tidal']['password'])
-        if not login_success:
-            raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
+        try:
+            login_success = self.session.login(self.config['tidal']['username'], self.config['tidal']['password'])
+            if not login_success:
+                raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
+        except AuthenticationError as e:
+            raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
 
     def check_session(self):
         if not self.session.check_login():
@@ -49,19 +48,27 @@ class TidalClient:
         return playlist.id
 
     def add_tracks_to_playlist(self, playlist_id, track_ids):
-        playlist = self.session.playlist(playlist_id)
-        tracks = [self.session.track(track_id) for track_id in track_ids]
         try:
+            playlist = self.session.playlist(playlist_id)
+            tracks = [self.session.track(track_id) for track_id in track_ids]
             playlist.add(tracks)
-        except TidalError as e:
+        except ObjectNotFound as e:
+            raise PlaylistModificationError(f"Playlist or track not found: {str(e)}")
+        except TooManyRequests as e:
+            raise PlaylistModificationError(f"Too many requests to Tidal API: {str(e)}")
+        except Exception as e:
             raise PlaylistModificationError(f"Failed to add tracks to Tidal playlist: {str(e)}")
 
     def remove_tracks_from_playlist(self, playlist_id, track_ids):
-        playlist = self.session.playlist(playlist_id)
-        tracks = [self.session.track(track_id) for track_id in track_ids]
         try:
+            playlist = self.session.playlist(playlist_id)
+            tracks = [self.session.track(track_id) for track_id in track_ids]
             playlist.remove(tracks)
-        except TidalError as e:
+        except ObjectNotFound as e:
+            raise PlaylistModificationError(f"Playlist or track not found: {str(e)}")
+        except TooManyRequests as e:
+            raise PlaylistModificationError(f"Too many requests to Tidal API: {str(e)}")
+        except Exception as e:
             raise PlaylistModificationError(f"Failed to remove tracks from Tidal playlist: {str(e)}")
 
     def get_playlist_by_name(self, name):
