@@ -52,39 +52,28 @@ class SyncManager:
             # Get target playlist tracks
             target_tracks = target_client.get_playlist_tracks(target_playlist_id)
 
-            # Rest of the sync logic...
+            # Find tracks to add and remove
+            source_track_ids = set(track['id'] for track in source_tracks)
+            target_track_ids = set(track['id'] for track in target_tracks)
+
+            tracks_to_add = source_track_ids - target_track_ids
+            tracks_to_remove = target_track_ids - source_track_ids
+
+            # Add new tracks
+            for track_id in tracks_to_add:
+                track = next(track for track in source_tracks if track['id'] == track_id)
+                matching_track = utils.find_matching_track(track, target_client)
+                if matching_track:
+                    target_client.add_tracks_to_playlist(target_playlist_id, [matching_track['id']])
+
+            # Remove tracks
+            for track_id in tracks_to_remove:
+                track = next(track for track in target_tracks if track['id'] == track_id)
+                target_client.remove_tracks_from_playlist(target_playlist_id, [track['id']])
+
+            # Update cache
+            self.db.cache_playlist(source_platform, playlist['id'], utils.get_current_timestamp())
+            self.db.cache_playlist(target_platform, target_playlist_id, utils.get_current_timestamp())
 
         except Exception as e:
             print(f"Error syncing playlist {playlist['name']}: {str(e)}")
-
-        if target_playlist is None:
-            # Create playlist on target platform if it doesn't exist
-            target_playlist_id = target_client.create_playlist(playlist['name'])
-        else:
-            target_playlist_id = target_playlist['id']
-
-        # Get target playlist tracks
-        target_tracks = target_client.get_playlist_tracks(target_playlist_id)
-
-        # Find tracks to add and remove
-        source_track_ids = set(track['id'] for track in source_tracks)
-        target_track_ids = set(track['id'] for track in target_tracks)
-
-        tracks_to_add = source_track_ids - target_track_ids
-        tracks_to_remove = target_track_ids - source_track_ids
-
-        # Add new tracks
-        for track_id in tracks_to_add:
-            track = next(track for track in source_tracks if track['id'] == track_id)
-            matching_track = utils.find_matching_track(track, target_client)
-            if matching_track:
-                target_client.add_tracks_to_playlist(target_playlist_id, [matching_track['id']])
-
-        # Remove tracks
-        for track_id in tracks_to_remove:
-            track = next(track for track in target_tracks if track['id'] == track_id)
-            target_client.remove_tracks_from_playlist(target_playlist_id, [track['id']])
-
-        # Update cache
-        self.db.cache_playlist(source_platform, playlist['id'], utils.get_current_timestamp())
-        self.db.cache_playlist(target_platform, target_playlist_id, utils.get_current_timestamp())
