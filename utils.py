@@ -1,6 +1,7 @@
 import logging
 import random
 import time
+import datetime
 from functools import wraps
 
 logging.basicConfig(level=logging.INFO)
@@ -30,9 +31,6 @@ def retry_with_backoff(retries=3, backoff_in_seconds=1):
         return wrapper
 
     return decorator
-
-
-import datetime
 
 
 def find_matching_track(track, platform_client):
