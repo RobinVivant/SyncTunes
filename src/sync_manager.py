@@ -49,7 +49,21 @@ class SyncManager:
         
         return list(common_names)
 
-    def sync_playlist(self, playlist):
+    def sync_single_playlist(self, source_platform, target_platform, playlist_id):
+        source_client = self.spotify if source_platform == 'spotify' else self.tidal
+        target_client = self.tidal if target_platform == 'tidal' else self.spotify
+
+        playlist = next((p for p in source_client.get_playlists() if p['id'] == playlist_id), None)
+        if not playlist:
+            return {"error": "Playlist not found"}
+
+        try:
+            self.sync_playlist(playlist, source_platform)
+            return {"message": f"Playlist '{playlist['name']}' synced successfully"}
+        except SyncError as e:
+            return {"error": str(e)}
+
+    def sync_playlist(self, playlist, source_platform='spotify'):
         try:
             source_platform = 'spotify' if isinstance(playlist, dict) else 'tidal'
             target_platform = 'tidal' if source_platform == 'spotify' else 'spotify'

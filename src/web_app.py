@@ -22,10 +22,28 @@ def sync():
     else:
         return jsonify({"error": "Invalid request"}), 400
 
-@app.route('/playlists', methods=['GET'])
-def get_playlists():
-    playlists = sync_manager.get_common_playlists()
+@app.route('/spotify_playlists', methods=['GET'])
+def get_spotify_playlists():
+    playlists = sync_manager.spotify.get_playlists()
     return jsonify(playlists), 200
+
+@app.route('/tidal_playlists', methods=['GET'])
+def get_tidal_playlists():
+    playlists = sync_manager.tidal.get_playlists()
+    return jsonify(playlists), 200
+
+@app.route('/sync_playlist', methods=['POST'])
+def sync_playlist():
+    data = request.json
+    source_platform = data.get('source_platform')
+    target_platform = data.get('target_platform')
+    playlist_id = data.get('playlist_id')
+    
+    if source_platform and target_platform and playlist_id:
+        result = sync_manager.sync_single_playlist(source_platform, target_platform, playlist_id)
+        return jsonify(result), 200
+    else:
+        return jsonify({"error": "Invalid request"}), 400
 
 if __name__ == '__main__':
     app.run(debug=True)

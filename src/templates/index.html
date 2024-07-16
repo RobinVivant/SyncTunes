@@ -5,54 +5,107 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spotify-Tidal Playlist Sync</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        .playlist-container {
+            display: flex;
+            justify-content: space-around;
+        }
+        .playlist-list {
+            width: 45%;
+            border: 1px solid #ccc;
+            min-height: 300px;
+            padding: 10px;
+        }
+        .playlist-item {
+            cursor: move;
+            padding: 5px;
+            margin: 5px 0;
+            background-color: #f0f0f0;
+        }
+    </style>
 </head>
 <body>
     <h1>Spotify-Tidal Playlist Sync</h1>
-    <button onclick="syncAll()">Sync All Playlists</button>
-    <br><br>
-    <h2>Common Playlists</h2>
-    <ul id="playlistList"></ul>
-    <br>
-    <input type="text" id="playlistInput" placeholder="Enter playlist names, comma-separated">
-    <button onclick="syncSpecific()">Sync Specific Playlists</button>
+    <div class="playlist-container">
+        <div class="playlist-list" id="spotifyPlaylists" ondrop="drop(event, 'spotify')" ondragover="allowDrop(event)">
+            <h2>Spotify Playlists</h2>
+        </div>
+        <div class="playlist-list" id="tidalPlaylists" ondrop="drop(event, 'tidal')" ondragover="allowDrop(event)">
+            <h2>Tidal Playlists</h2>
+        </div>
+    </div>
     <p id="message"></p>
 
     <script>
-        function syncAll() {
-            axios.post('/sync', { all: true })
-                .then(response => {
-                    document.getElementById('message').innerText = response.data.message;
-                })
-                .catch(error => {
-                    document.getElementById('message').innerText = 'Error: ' + error.response.data.error;
-                });
-        }
-
-        function syncSpecific() {
-            const playlists = document.getElementById('playlistInput').value.split(',').map(p => p.trim());
-            axios.post('/sync', { playlists: playlists })
-                .then(response => {
-                    document.getElementById('message').innerText = response.data.message;
-                })
-                .catch(error => {
-                    document.getElementById('message').innerText = 'Error: ' + error.response.data.error;
-                });
-        }
-
         function loadPlaylists() {
-            axios.get('/playlists')
+            axios.get('/spotify_playlists')
                 .then(response => {
-                    const playlistList = document.getElementById('playlistList');
-                    playlistList.innerHTML = '';
+                    const spotifyList = document.getElementById('spotifyPlaylists');
                     response.data.forEach(playlist => {
-                        const li = document.createElement('li');
-                        li.textContent = playlist;
-                        playlistList.appendChild(li);
+                        const div = createPlaylistItem(playlist, 'spotify');
+                        spotifyList.appendChild(div);
                     });
                 })
                 .catch(error => {
-                    console.error('Error loading playlists:', error);
+                    console.error('Error loading Spotify playlists:', error);
                 });
+
+            axios.get('/tidal_playlists')
+                .then(response => {
+                    const tidalList = document.getElementById('tidalPlaylists');
+                    response.data.forEach(playlist => {
+                        const div = createPlaylistItem(playlist, 'tidal');
+                        tidalList.appendChild(div);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading Tidal playlists:', error);
+                });
+        }
+
+        function createPlaylistItem(playlist, platform) {
+            const div = document.createElement('div');
+            div.className = 'playlist-item';
+            div.draggable = true;
+            div.textContent = playlist.name;
+            div.setAttribute('data-id', playlist.id);
+            div.setAttribute('data-platform', platform);
+            div.ondragstart = drag;
+            return div;
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev, targetPlatform) {
+            ev.preventDefault();
+            const data = ev.dataTransfer.getData("text");
+            const draggedElement = document.getElementById(data);
+            const sourcePlatform = draggedElement.getAttribute('data-platform');
+            const playlistId = draggedElement.getAttribute('data-id');
+
+            if (sourcePlatform !== targetPlatform) {
+                syncPlaylist(sourcePlatform, targetPlatform, playlistId);
+            }
+        }
+
+        function syncPlaylist(sourcePlatform, targetPlatform, playlistId) {
+            axios.post('/sync_playlist', {
+                source_platform: sourcePlatform,
+                target_platform: targetPlatform,
+                playlist_id: playlistId
+            })
+            .then(response => {
+                document.getElementById('message').innerText = response.data.message;
+            })
+            .catch(error => {
+                document.getElementById('message').innerText = 'Error: ' + error.response.data.error;
+            });
         }
 
         // Load playlists when the page loads
