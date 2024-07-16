@@ -42,3 +42,6 @@ class SpotifyClient:
 
     def add_tracks_to_playlist(self, playlist_id, track_uris):
         self.sp.playlist_add_items(playlist_id, track_uris)
+
+    def remove_tracks_from_playlist(self, playlist_id, track_uris):
+        self.sp.playlist_remove_all_occurrences_of_items(playlist_id, track_uris)

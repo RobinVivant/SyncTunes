@@ -33,3 +33,8 @@ class TidalClient:
         playlist = self.session.playlist(playlist_id)
         tracks = [self.session.track(track_id) for track_id in track_ids]
         playlist.add(tracks)
+
+    def remove_tracks_from_playlist(self, playlist_id, track_ids):
+        playlist = self.session.playlist(playlist_id)
+        tracks = [self.session.track(track_id) for track_id in track_ids]
+        playlist.remove(tracks)
