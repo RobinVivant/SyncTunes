@@ -48,7 +48,7 @@ class TidalClient:
         } for track in tracks]
 
     def create_playlist(self, name):
-        playlist = self.session.user.create_playlist(name, description="Created by Spotify-Tidal Sync")
+        playlist = self.session.user.create_playlist(name, "Created by Spotify-Tidal Sync")
         return playlist.id
 
     def add_tracks_to_playlist(self, playlist_id, track_ids):

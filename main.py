@@ -10,7 +10,7 @@ from tidal_client import AuthenticationError, PlaylistModificationError
 logger = logging.getLogger(__name__)
 
 
-def signal_handler(sig, frame):
+def signal_handler(_, __):
     print('\nExiting gracefully...')
     sys.exit(0)
 

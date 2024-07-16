@@ -12,6 +12,7 @@ class SyncError(Exception):
     pass
 
 
+
 class SyncManager:
     def __init__(self, config):
         self.spotify = SpotifyClient(config)
