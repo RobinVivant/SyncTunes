@@ -27,18 +27,20 @@ class TidalClient:
         try:
             logger.info("Starting Tidal login process")
             self.session = tidalapi.Session()
-            self.session.login_oauth(auth_code)
+            login_result = self.session.login_oauth(auth_code)
             
-            if not self.session.check_login():
+            if not login_result or not self.session.check_login():
                 logger.error("Failed to login to Tidal. Please check your credentials.")
                 raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
             
             self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
             logger.info("Tidal login successful")
-            logger.info("Tidal session logged in successfully")
-        except Exception as e:
-            logger.exception(f"Tidal authentication failed: {str(e)}")
+        except tidalapi.exceptions.AuthenticationError as e:
+            logger.error(f"Tidal authentication failed: {str(e)}")
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
+        except Exception as e:
+            logger.exception(f"Unexpected error during Tidal authentication: {str(e)}")
+            raise AuthenticationError(f"Unexpected error during Tidal authentication: {str(e)}")
 
     def get_auth_url(self):
         self.session = tidalapi.Session()

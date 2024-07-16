@@ -33,6 +33,8 @@ class SpotifyClient:
 
         try:
             self.token_info = self.auth_manager.get_access_token(auth_code)
+            if not self.token_info:
+                raise AuthenticationError("Failed to get access token")
             self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
             self.save_token()
             logger.info("Spotify authentication successful")

@@ -101,19 +101,27 @@ class SyncManager:
                 source_tracks = source_client.get_playlist_tracks(playlist['id'])
             except Exception as e:
                 logger.error(f"Error fetching tracks for playlist {playlist['name']} from {source_platform}: {str(e)}")
-                return
+                raise SyncError(f"Error fetching tracks for playlist {playlist['name']} from {source_platform}: {str(e)}")
 
             # Check if playlist exists on target platform
             target_playlist = next((p for p in target_client.get_playlists() if p['name'] == playlist['name']), None)
 
             if target_playlist is None:
                 # Create playlist on target platform if it doesn't exist
-                target_playlist_id = target_client.create_playlist(playlist['name'])
+                try:
+                    target_playlist_id = target_client.create_playlist(playlist['name'])
+                except Exception as e:
+                    logger.error(f"Error creating playlist {playlist['name']} on {target_platform}: {str(e)}")
+                    raise SyncError(f"Error creating playlist {playlist['name']} on {target_platform}: {str(e)}")
             else:
                 target_playlist_id = target_playlist['id']
 
             # Get target playlist tracks
-            target_tracks = target_client.get_playlist_tracks(target_playlist_id)
+            try:
+                target_tracks = target_client.get_playlist_tracks(target_playlist_id)
+            except Exception as e:
+                logger.error(f"Error fetching tracks for playlist {playlist['name']} from {target_platform}: {str(e)}")
+                raise SyncError(f"Error fetching tracks for playlist {playlist['name']} from {target_platform}: {str(e)}")
 
             # Find tracks to add and remove
             source_track_ids = set(track['id'] for track in source_tracks)
@@ -127,14 +135,20 @@ class SyncManager:
                 track = next(track for track in source_tracks if track['id'] == track_id)
                 matching_track = utils.find_matching_track(track, target_client)
                 if matching_track:
-                    target_client.add_tracks_to_playlist(target_playlist_id, [matching_track['id']])
+                    try:
+                        target_client.add_tracks_to_playlist(target_playlist_id, [matching_track['id']])
+                    except Exception as e:
+                        logger.error(f"Error adding track {track['name']} to playlist on {target_platform}: {str(e)}")
                 else:
                     logger.warning(f"No matching track found for {track['name']} by {', '.join(track['artists'])} on the target platform")
 
             # Remove tracks
             for track_id in tracks_to_remove:
                 track = next(track for track in target_tracks if track['id'] == track_id)
-                target_client.remove_tracks_from_playlist(target_playlist_id, [track['id']])
+                try:
+                    target_client.remove_tracks_from_playlist(target_playlist_id, [track['id']])
+                except Exception as e:
+                    logger.error(f"Error removing track {track['name']} from playlist on {target_platform}: {str(e)}")
 
             # Update cache
             self.db.cache_playlist(source_platform, playlist['id'], utils.get_current_timestamp())
