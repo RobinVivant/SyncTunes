@@ -1,9 +1,5 @@
 import logging
-import threading
 import time
-import urllib.parse
-import webbrowser
-from http.server import HTTPServer, BaseHTTPRequestHandler
 
 import tidalapi
 from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
@@ -13,15 +9,6 @@ logger = logging.getLogger(__name__)
 
 class PlaylistModificationError(Exception):
     pass
-
-
-class CallbackHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write(b"Authentication successful! You can close this window.")
-        self.server.path = self.path
 
 
 class TidalClient:
@@ -37,57 +24,18 @@ class TidalClient:
         try:
             logger.info("Starting Tidal login process")
             self.session = tidalapi.Session()
-            # Use the client_id, redirect_uri, and scope from the config
             login, future = self.session.login_oauth()
             logger.info("OAuth login initiated")
 
-            # Open the authorization URL in a web browser
-            auth_url = login.verification_uri_complete
-            print(f"\nPlease open this URL in your web browser if it doesn't open automatically:\n{auth_url}\n")
-            webbrowser.open(auth_url)
-            logger.info("Authorization URL provided to user")
+            print(f"\nPlease visit {login.verification_uri} and enter the code: {login.user_code}")
+            print("Waiting for you to log in...")
 
-            # Give the browser some time to open
-            time.sleep(2)
-
-            # Start local server to listen for the callback
-            server = HTTPServer(('localhost', 8888), CallbackHandler)
-            server_thread = threading.Thread(target=server.handle_request)
-            server_thread.start()
-            logger.info("Local server started to listen for callback")
-
-            server_thread.join(timeout=60)  # Wait for a maximum of 60 seconds
-            logger.info("Waiting for server thread to complete")
-
-            if server_thread.is_alive():
-                server.shutdown()
-                logger.error("Tidal authentication timed out")
-                raise AuthenticationError("Tidal authentication timed out")
-
-            if not hasattr(server, 'path'):
-                logger.error("Server did not receive a callback")
-                raise AuthenticationError("Tidal authentication failed: No callback received")
-
-            # Parse the callback URL
-            parsed_url = urllib.parse.urlparse(server.path)
-            query_params = urllib.parse.parse_qs(parsed_url.query)
-            logger.info(f"Callback URL parsed: {server.path}")
-
-            # Check if the authentication was successful
-            if 'code' in query_params:
-                logger.info("Authorization code received, waiting for future result")
-                try:
-                    future.result(timeout=30)  # Wait for a maximum of 30 seconds
-                    logger.info("Future result received")
-                except Exception as e:
-                    logger.error(f"Error waiting for future result: {str(e)}")
-                    raise AuthenticationError(f"Failed to complete Tidal login: {str(e)}")
-            elif 'error' in query_params:
-                logger.error(f"Failed to login to Tidal. Error: {query_params['error'][0]}")
-                raise AuthenticationError(f"Failed to login to Tidal. Error: {query_params['error'][0]}")
-            else:
-                logger.error("Failed to login to Tidal. Authorization code not received.")
-                raise AuthenticationError("Failed to login to Tidal. Authorization code not received.")
+            try:
+                future.result(timeout=300)  # Wait for a maximum of 5 minutes
+                logger.info("Login successful")
+            except Exception as e:
+                logger.error(f"Error during login: {str(e)}")
+                raise AuthenticationError(f"Failed to complete Tidal login: {str(e)}")
 
             if not self.session.check_login():
                 logger.error("Failed to login to Tidal. Please check your credentials.")
