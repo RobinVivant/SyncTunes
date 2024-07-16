@@ -13,20 +13,21 @@ def main():
     args = parser.parse_args()
 
     try:
-        config = load_config()
-        sync_manager = SyncManager(config)
-
         if args.gui:
             print("GUI not implemented yet. Falling back to CLI.")
+
+        if not args.all and not args.playlists:
+            print("Please specify --all or --playlists")
+            parser.print_help()
+            sys.exit(1)
+
+        config = load_config()
+        sync_manager = SyncManager(config)
 
         if args.all:
             sync_manager.sync_all_playlists()
         elif args.playlists:
             sync_manager.sync_specific_playlists(args.playlists)
-        else:
-            print("Please specify --all or --playlists")
-            parser.print_help()
-            sys.exit(1)
 
         print("Sync completed successfully.")
     except Exception as e:
