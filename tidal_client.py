@@ -29,6 +29,7 @@ class TidalClient:
             self.login()
 
     def get_playlists(self):
+        self.check_session()
         playlists = self.session.user.playlists()
         return [{
             'id': playlist.id,

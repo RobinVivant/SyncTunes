@@ -74,6 +74,8 @@ class SyncManager:
                 matching_track = utils.find_matching_track(track, target_client)
                 if matching_track:
                     target_client.add_tracks_to_playlist(target_playlist_id, [matching_track['id']])
+                else:
+                    logger.warning(f"No matching track found for {track['name']} by {', '.join(track['artists'])} on the target platform")
 
             # Remove tracks
             for track_id in tracks_to_remove:

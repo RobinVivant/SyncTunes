@@ -62,13 +62,15 @@ class SpotifyClient:
             results = self.sp.search(q=query, type='track', limit=1)
             if results and 'tracks' in results and 'items' in results['tracks'] and results['tracks']['items']:
                 track = results['tracks']['items'][0]
-                return [{
-                    'id': track['id'],
-                    'name': track['name'],
-                    'artists': [artist['name'] for artist in track['artists']],
-                    'album': track['album']['name'],
-                    'uri': track['uri']
-                }]
+                if track:
+                    return [{
+                        'id': track['id'],
+                        'name': track['name'],
+                        'artists': [artist['name'] for artist in track['artists']],
+                        'album': track['album']['name'],
+                        'uri': track['uri']
+                    }]
+            logger.info(f"No tracks found for query: {query}")
             return []
         except Exception as e:
             logger.error(f"Error searching for tracks: {str(e)}")

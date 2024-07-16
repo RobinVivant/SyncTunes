@@ -1,10 +1,16 @@
 import sqlite3
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Database:
     def __init__(self, config):
-        self.conn = sqlite3.connect(config['database']['path'])
-        self.create_tables()
+        try:
+            self.conn = sqlite3.connect(config['database']['path'])
+            self.create_tables()
+        except sqlite3.Error as e:
+            logger.error(f"Error connecting to database: {e}")
+            raise
 
     def create_tables(self):
         cursor = self.conn.cursor()
