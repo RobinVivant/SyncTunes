@@ -166,10 +166,10 @@ def tidal_callback():
             return redirect(url_for('index'))
         else:
             logger.error("Tidal authentication failed: login returned False")
-            return jsonify({"error": "Tidal authentication failed"}), 500
+            return render_template('error.html', error="Tidal authentication failed. Please try again."), 401
     except Exception as e:
         logger.exception(f"Tidal authentication failed with exception: {str(e)}")
-        return jsonify({"error": f"Tidal authentication failed: {str(e)}"}), 500
+        return render_template('error.html', error=f"Tidal authentication failed: {str(e)}"), 500
 
 
 if __name__ == '__main__':
