@@ -15,9 +15,17 @@ class SyncError(Exception):
 
 class SyncManager:
     def __init__(self, config):
+        logger.info("Initializing SpotifyClient")
         self.spotify = SpotifyClient(config)
+        logger.info("SpotifyClient initialized")
+        
+        logger.info("Initializing TidalClient")
         self.tidal = TidalClient(config)
+        logger.info("TidalClient initialized")
+        
+        logger.info("Initializing Database")
         self.db = Database(config)
+        logger.info("Database initialized")
 
     def sync_all_playlists(self):
         spotify_playlists = self.spotify.get_playlists()

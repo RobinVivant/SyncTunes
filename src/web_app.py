@@ -12,9 +12,13 @@ app = Flask(__name__, static_folder='static')
 
 logger.info("Loading configuration")
 config = load_config()
+logger.info("Configuration loaded successfully")
 
 logger.info("Initializing SyncManager")
 sync_manager = SyncManager(config)
+logger.info("SyncManager initialized successfully")
+
+logger.info("Flask app initialization complete")
 
 @app.route('/')
 def index():
@@ -95,7 +99,7 @@ if __name__ == '__main__':
     logger.info("Starting Flask application")
     try:
         logger.info("About to start Flask app...")
-        app.run(debug=True, use_reloader=False, host='localhost', port=5000)
+        app.run(debug=True, use_reloader=False, host='localhost', port=5000, threaded=True)
         logger.info("Flask app has finished running.")
     except Exception as e:
         logger.error(f"Failed to start Flask application: {str(e)}")
