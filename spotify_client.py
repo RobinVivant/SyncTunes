@@ -32,10 +32,11 @@ class SpotifyClient:
 
     def get_playlist_tracks(self, playlist_id):
         tracks = []
-        results = self.sp.playlist_tracks(playlist_id)
+        results = self.sp.playlist_items(playlist_id, additional_types=('track',))
         while results:
             for item in results['items']:
-                track = item['track']
+                if item['track']:
+                    track = item['track']
                 tracks.append({
                     'id': track['id'],
                     'name': track['name'],
