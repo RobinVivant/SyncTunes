@@ -134,7 +134,14 @@
             } else {
                 button.textContent = `Connect ${platform.charAt(0).toUpperCase() + platform.slice(1)}`;
                 button.classList.remove('connected');
-                button.onclick = platform === 'spotify' ? () => window.open('/spotify_auth', '_blank') : () => initiateTidalAuth();
+                if (platform === 'spotify') {
+                    button.onclick = (event) => {
+                        event.preventDefault();
+                        window.open('/spotify_auth', '_blank');
+                    };
+                } else {
+                    button.onclick = () => initiateTidalAuth();
+                }
             }
         }
 
