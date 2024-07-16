@@ -1,9 +1,9 @@
 import logging
+
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
-from sync_manager import SyncManager
+
 from config import load_config
-from spotify_client import AuthenticationError as SpotifyAuthenticationError
-from tidal_client import AuthenticationError as TidalAuthenticationError
+from sync_manager import SyncManager
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -18,18 +18,22 @@ logger.info("Configuration loaded successfully")
 
 logger.info("Flask app initialization complete")
 
+
 def get_sync_manager():
     return SyncManager(config)
+
 
 @app.route('/')
 def index():
     logger.info("Rendering index page")
     return render_template('index.html')
 
+
 @app.route('/static/<path:path>')
 def send_static(path):
     logger.info(f"Serving static file: {path}")
     return send_from_directory('static', path)
+
 
 @app.route('/spotify_playlists', methods=['GET'])
 def get_spotify_playlists():
@@ -47,6 +51,7 @@ def get_spotify_playlists():
         logger.error(f"Error fetching Spotify playlists: {str(e)}")
         return jsonify({"error": "Failed to fetch Spotify playlists"}), 500
 
+
 @app.route('/tidal_playlists', methods=['GET'])
 def get_tidal_playlists():
     logger.info("Fetching Tidal playlists")
@@ -63,6 +68,7 @@ def get_tidal_playlists():
         logger.error(f"Error fetching Tidal playlists: {str(e)}")
         return jsonify({"error": "Failed to fetch Tidal playlists"}), 500
 
+
 @app.route('/refresh_playlists', methods=['POST'])
 def refresh_playlists():
     logger.info("Refreshing playlists")
@@ -78,6 +84,7 @@ def refresh_playlists():
     except Exception as e:
         logger.error(f"Error refreshing {platform} playlists: {str(e)}")
         return jsonify({"error": f"Failed to refresh {platform} playlists"}), 500
+
 
 @app.route('/sync', methods=['POST'])
 def sync():
@@ -96,6 +103,7 @@ def sync():
         logger.warning("Invalid sync request")
         return jsonify({"error": "Invalid request"}), 400
 
+
 @app.route('/sync_playlist', methods=['POST'])
 def sync_playlist():
     logger.info("Received single playlist sync request")
@@ -103,7 +111,7 @@ def sync_playlist():
     source_platform = data.get('source_platform')
     target_platform = data.get('target_platform')
     playlist_id = data.get('playlist_id')
-    
+
     if source_platform and target_platform and playlist_id:
         logger.info(f"Syncing playlist from {source_platform} to {target_platform}")
         sync_manager = get_sync_manager()
@@ -113,6 +121,7 @@ def sync_playlist():
         logger.warning("Invalid single playlist sync request")
         return jsonify({"error": "Invalid request"}), 400
 
+
 @app.route('/spotify_auth', methods=['GET'])
 def spotify_auth():
     logger.info("Initiating Spotify authentication")
@@ -120,12 +129,14 @@ def spotify_auth():
     auth_url = sync_manager.spotify.get_auth_url()
     return redirect(auth_url)
 
+
 @app.route('/tidal_auth', methods=['GET'])
 def tidal_auth():
     logger.info("Initiating Tidal authentication")
     sync_manager = get_sync_manager()
     auth_url = sync_manager.tidal.get_auth_url()
     return redirect(auth_url)
+
 
 @app.route('/callback/spotify')
 def spotify_callback():
@@ -139,6 +150,7 @@ def spotify_callback():
         logger.error(f"Spotify authentication failed: {str(e)}")
         return jsonify({"error": "Spotify authentication failed"}), 500
 
+
 @app.route('/callback/tidal')
 def tidal_callback():
     logger.info("Tidal callback received")
@@ -151,11 +163,12 @@ def tidal_callback():
         logger.error(f"Tidal authentication failed: {str(e)}")
         return jsonify({"error": "Tidal authentication failed"}), 500
 
+
 if __name__ == '__main__':
     logger.info("Starting Flask application")
     try:
         logger.info("About to start Flask app...")
-        app.run(debug=True, use_reloader=False, host='localhost', port=8888, threaded=True)
+        app.run(debug=True, use_reloader=False, host='localhost', port=5000, threaded=True)
         logger.info("Flask app has finished running.")
     except Exception as e:
         logger.error(f"Failed to start Flask application: {str(e)}")
