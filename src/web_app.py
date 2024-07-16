@@ -2,7 +2,8 @@ import logging
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from sync_manager import SyncManager
 from config import load_config
-from spotify_client import AuthenticationError
+from spotify_client import AuthenticationError as SpotifyAuthenticationError
+from tidal_client import AuthenticationError as TidalAuthenticationError
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

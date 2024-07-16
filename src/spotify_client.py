@@ -14,6 +14,9 @@ import utils
 
 logger = logging.getLogger(__name__)
 
+class AuthenticationError(Exception):
+    pass
+
 
 class CallbackHandler(BaseHTTPRequestHandler):
     def do_GET(self):
