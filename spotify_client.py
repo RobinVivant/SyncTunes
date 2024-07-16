@@ -11,17 +11,34 @@ class SpotifyClient:
         ))
 
     def get_playlists(self):
-        # Implement fetching playlists
-        pass
+        results = self.sp.current_user_playlists()
+        playlists = []
+        for item in results['items']:
+            playlists.append({
+                'id': item['id'],
+                'name': item['name'],
+                'tracks': item['tracks']['total']
+            })
+        return playlists
 
     def get_playlist_tracks(self, playlist_id):
-        # Implement fetching tracks for a playlist
-        pass
+        results = self.sp.playlist_tracks(playlist_id)
+        tracks = []
+        for item in results['items']:
+            track = item['track']
+            tracks.append({
+                'id': track['id'],
+                'name': track['name'],
+                'artists': [artist['name'] for artist in track['artists']],
+                'album': track['album']['name'],
+                'uri': track['uri']
+            })
+        return tracks
 
     def create_playlist(self, name):
-        # Implement creating a new playlist
-        pass
+        user_id = self.sp.me()['id']
+        playlist = self.sp.user_playlist_create(user_id, name, public=False)
+        return playlist['id']
 
     def add_tracks_to_playlist(self, playlist_id, track_uris):
-        # Implement adding tracks to a playlist
-        pass
+        self.sp.playlist_add_items(playlist_id, track_uris)
