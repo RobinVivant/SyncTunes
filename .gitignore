@@ -4,3 +4,4 @@
 *.env
 __pycache__
 .cache
+/spotify_tidal_sync.db
