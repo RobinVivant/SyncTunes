@@ -2,6 +2,7 @@ import argparse
 import logging
 import signal
 import sys
+import unittest
 
 from config import load_config
 from sync_manager import SyncManager, SyncError
@@ -18,14 +19,27 @@ def signal_handler(_, __):
 signal.signal(signal.SIGINT, signal_handler)
 
 
+def run_tests():
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('tests', pattern='test_*.py')
+    runner = unittest.TextTestRunner(verbosity=2)
+    result = runner.run(test_suite)
+    return result.wasSuccessful()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Spotify-Tidal Playlist Sync")
     parser.add_argument("--all", action="store_true", help="Sync all playlists")
     parser.add_argument("--playlists", nargs="+", help="List of playlist names to sync")
     parser.add_argument("--gui", action="store_true", help="Launch GUI (not implemented yet)")
+    parser.add_argument("--run-tests", action="store_true", help="Run all tests")
     args = parser.parse_args()
 
     try:
+        if args.run_tests:
+            success = run_tests()
+            sys.exit(0 if success else 1)
+
         if args.gui:
             print("GUI not implemented yet. Falling back to CLI.")
 
