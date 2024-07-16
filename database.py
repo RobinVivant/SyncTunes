@@ -6,21 +6,55 @@ class Database:
         self.create_tables()
 
     def create_tables(self):
-        # Create necessary tables for caching
-        pass
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS playlists (
+                platform TEXT,
+                playlist_id TEXT,
+                last_modified TEXT,
+                PRIMARY KEY (platform, playlist_id)
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS tracks (
+                platform TEXT,
+                track_id TEXT,
+                metadata TEXT,
+                PRIMARY KEY (platform, track_id)
+            )
+        ''')
+        self.conn.commit()
 
     def cache_playlist(self, platform, playlist_id, last_modified):
-        # Cache playlist metadata
-        pass
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            INSERT OR REPLACE INTO playlists (platform, playlist_id, last_modified)
+            VALUES (?, ?, ?)
+        ''', (platform, playlist_id, last_modified))
+        self.conn.commit()
 
     def get_cached_playlist(self, platform, playlist_id):
-        # Retrieve cached playlist metadata
-        pass
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            SELECT last_modified FROM playlists
+            WHERE platform = ? AND playlist_id = ?
+        ''', (platform, playlist_id))
+        result = cursor.fetchone()
+        return result[0] if result else None
 
     def cache_track(self, platform, track_id, metadata):
-        # Cache track metadata
-        pass
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            INSERT OR REPLACE INTO tracks (platform, track_id, metadata)
+            VALUES (?, ?, ?)
+        ''', (platform, track_id, str(metadata)))
+        self.conn.commit()
 
     def get_cached_track(self, platform, track_id):
-        # Retrieve cached track metadata
-        pass
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            SELECT metadata FROM tracks
+            WHERE platform = ? AND track_id = ?
+        ''', (platform, track_id))
+        result = cursor.fetchone()
+        return eval(result[0]) if result else None
