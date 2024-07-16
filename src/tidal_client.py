@@ -27,9 +27,8 @@ class CallbackHandler(BaseHTTPRequestHandler):
 class TidalClient:
     def __init__(self, config):
         logger.info("Initializing TidalClient")
-        self.session = tidalapi.Session()
-        logger.info("TidalAPI Session created")
         self.config = config
+        self.session = None
         logger.info("Config loaded")
         self.login()
         logger.info("TidalClient initialization completed")
@@ -37,7 +36,13 @@ class TidalClient:
     def login(self):
         try:
             logger.info("Starting Tidal login process")
-            login, future = self.session.login_oauth()
+            self.session = tidalapi.Session()
+            # Use the client_id and redirect_uri from the config
+            login, future = self.session.login_oauth(
+                client_id=self.config['tidal']['client_id'],
+                redirect_uri=self.config['tidal']['redirect_uri'],
+                scope=self.config['tidal']['scope']
+            )
             logger.info("OAuth login initiated")
 
             # Open the authorization URL in a web browser

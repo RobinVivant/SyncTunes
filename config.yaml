@@ -5,6 +5,8 @@ spotify:
 tidal:
   client_id: your_tidal_client_id
   client_secret: your_tidal_client_secret
+  redirect_uri: http://localhost:8888/callback
+  scope: r_usr w_usr w_sub
 
 database:
   path: spotify_tidal_sync.db
