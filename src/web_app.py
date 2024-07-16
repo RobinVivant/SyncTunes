@@ -8,7 +8,20 @@ sync_manager = SyncManager(config)
 
 @app.route('/')
 def index():
+    logger.info("Rendering index page")
     return render_template('index.html')
+
+@app.route('/spotify_playlists', methods=['GET'])
+def get_spotify_playlists():
+    logger.info("Fetching Spotify playlists")
+    playlists = sync_manager.spotify.get_playlists()
+    return jsonify(playlists), 200
+
+@app.route('/tidal_playlists', methods=['GET'])
+def get_tidal_playlists():
+    logger.info("Fetching Tidal playlists")
+    playlists = sync_manager.tidal.get_playlists()
+    return jsonify(playlists), 200
 
 @app.route('/sync', methods=['POST'])
 def sync():
