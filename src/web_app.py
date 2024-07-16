@@ -157,6 +157,12 @@ def tidal_callback():
     logger.info("Tidal callback received")
     code = request.args.get('code')
     logger.info(f"Received Tidal auth code: {code}")
+    
+    # Log all request details
+    logger.info(f"Request method: {request.method}")
+    logger.info(f"Request headers: {request.headers}")
+    logger.info(f"Request args: {request.args}")
+    
     sync_manager = get_sync_manager()
     try:
         result = sync_manager.tidal.login(code)

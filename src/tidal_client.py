@@ -57,7 +57,8 @@ class TidalClient:
     def get_auth_url(self):
         self.session = tidalapi.Session()
         login, future = self.session.login_oauth()
-        return "https://" + login.verification_uri_complete
+        logger.info(f"Tidal auth URL: {login.verification_uri_complete}")
+        return login.verification_uri_complete
 
     def load_token(self):
         token, expires_at = self.db.get_token('tidal')
