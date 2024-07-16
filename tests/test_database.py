@@ -1,7 +1,6 @@
 import unittest
-import sqlite3
 import os
-from database import Database
+from src.database import Database
 
 class TestDatabase(unittest.TestCase):
     def setUp(self):

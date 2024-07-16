@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-with open("requirements.txt") as f:
+with open("../requirements.txt") as f:
     requirements = f.read().splitlines()
 
 setup(
@@ -16,7 +16,7 @@ setup(
     author="Your Name",
     author_email="your.email@example.com",
     description="A tool to synchronize playlists between Spotify and Tidal",
-    long_description=open("README.md").read(),
+    long_description=open("../README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/yourusername/spotify-tidal-sync",
     classifiers=[
