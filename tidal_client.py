@@ -76,7 +76,7 @@ class TidalClient:
 
     def search_tracks(self, query):
         results = self.session.search('track', query)
-        if results.tracks:
+        if results and results.tracks:
             track = results.tracks[0]
             return [{
                 'id': track.id,
