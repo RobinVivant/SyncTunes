@@ -24,8 +24,9 @@ class CallbackHandler(BaseHTTPRequestHandler):
 
 
 class SpotifyClient:
-    def __init__(self, config):
+    def __init__(self, config, database):
         self.config = config
+        self.db = database
         self.sp = None
         self.auth_manager = None
         self.token_info = None
@@ -34,18 +35,17 @@ class SpotifyClient:
             self.authenticate()
 
     def load_token(self):
-        token_path = 'spotify_token.json'
-        if os.path.exists(token_path):
-            with open(token_path, 'r') as f:
-                self.token_info = json.load(f)
-            if self.token_info:
-                self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
-                logger.info("Spotify token loaded from file")
+        token, expires_at = self.db.get_token('spotify')
+        if token and expires_at:
+            expires_at = datetime.datetime.fromisoformat(expires_at)
+            if expires_at > datetime.datetime.now():
+                self.token_info = {'access_token': token, 'expires_at': expires_at}
+                self.sp = spotipy.Spotify(auth=token)
+                logger.info("Spotify token loaded from database")
 
     def save_token(self):
-        with open('spotify_token.json', 'w') as f:
-            json.dump(self.token_info, f)
-        logger.info("Spotify token saved to file")
+        self.db.store_token('spotify', self.token_info['access_token'], self.token_info['expires_at'].isoformat())
+        logger.info("Spotify token saved to database")
 
     def authenticate(self):
         if self.sp:

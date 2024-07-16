@@ -12,9 +12,10 @@ class PlaylistModificationError(Exception):
 
 
 class TidalClient:
-    def __init__(self, config):
+    def __init__(self, config, database):
         logger.info("Initializing TidalClient")
         self.config = config
+        self.db = database
         self.session = None
         logger.info("Config loaded")
         self.login()
@@ -23,6 +24,15 @@ class TidalClient:
     def login(self):
         try:
             logger.info("Starting Tidal login process")
+            token, expires_at = self.db.get_token('tidal')
+            if token and expires_at:
+                expires_at = datetime.datetime.fromisoformat(expires_at)
+                if expires_at > datetime.datetime.now():
+                    self.session = tidalapi.Session()
+                    self.session.load_oauth_session(token, expires_at)
+                    logger.info("Tidal token loaded from database")
+                    return
+
             self.session = tidalapi.Session()
             login, future = self.session.login_oauth()
             logger.info("OAuth login initiated")
@@ -41,6 +51,7 @@ class TidalClient:
                 logger.error("Failed to login to Tidal. Please check your credentials.")
                 raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
             
+            self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
             logger.info("Tidal login successful")
             logger.info("Tidal session logged in successfully")
         except Exception as e:
