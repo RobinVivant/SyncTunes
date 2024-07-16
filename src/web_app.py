@@ -37,9 +37,10 @@ def get_spotify_playlists():
     try:
         sync_manager = get_sync_manager()
         if not sync_manager.spotify.sp:
-            logger.info("Spotify client not authenticated, initiating authentication")
-            return jsonify({"error": "Authentication required", "platform": "spotify"}), 401
-        playlists = sync_manager.refresh_playlists('spotify')
+            logger.info("Spotify client not authenticated, returning cached playlists")
+            playlists = sync_manager.get_cached_playlists('spotify')
+        else:
+            playlists = sync_manager.refresh_playlists('spotify')
         logger.info(f"Successfully fetched {len(playlists)} Spotify playlists")
         return jsonify(playlists), 200
     except Exception as e:
@@ -52,9 +53,10 @@ def get_tidal_playlists():
     try:
         sync_manager = get_sync_manager()
         if not sync_manager.tidal.session:
-            logger.info("Tidal client not authenticated, initiating authentication")
-            return jsonify({"error": "Authentication required", "platform": "tidal"}), 401
-        playlists = sync_manager.refresh_playlists('tidal')
+            logger.info("Tidal client not authenticated, returning cached playlists")
+            playlists = sync_manager.get_cached_playlists('tidal')
+        else:
+            playlists = sync_manager.refresh_playlists('tidal')
         logger.info(f"Successfully fetched {len(playlists)} Tidal playlists")
         return jsonify(playlists), 200
     except Exception as e:
