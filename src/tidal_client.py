@@ -63,16 +63,24 @@ class TidalClient:
                 logger.error("Tidal authentication timed out")
                 raise AuthenticationError("Tidal authentication timed out")
 
+            if not hasattr(server, 'path'):
+                logger.error("Server did not receive a callback")
+                raise AuthenticationError("Tidal authentication failed: No callback received")
+
             # Parse the callback URL
             parsed_url = urllib.parse.urlparse(server.path)
             query_params = urllib.parse.parse_qs(parsed_url.query)
-            logger.info("Callback URL parsed")
+            logger.info(f"Callback URL parsed: {server.path}")
 
             # Check if the authentication was successful
             if 'code' in query_params:
                 logger.info("Authorization code received, waiting for future result")
-                future.result(timeout=30)  # Wait for a maximum of 30 seconds
-                logger.info("Future result received")
+                try:
+                    future.result(timeout=30)  # Wait for a maximum of 30 seconds
+                    logger.info("Future result received")
+                except Exception as e:
+                    logger.error(f"Error waiting for future result: {str(e)}")
+                    raise AuthenticationError(f"Failed to complete Tidal login: {str(e)}")
             elif 'error' in query_params:
                 logger.error(f"Failed to login to Tidal. Error: {query_params['error'][0]}")
                 raise AuthenticationError(f"Failed to login to Tidal. Error: {query_params['error'][0]}")
@@ -85,6 +93,7 @@ class TidalClient:
                 raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
             
             logger.info("Tidal login successful")
+            logger.info(f"Tidal session state: {self.session.state}")
         except Exception as e:
             logger.exception(f"Tidal authentication failed: {str(e)}")
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
