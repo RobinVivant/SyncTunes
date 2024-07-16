@@ -162,20 +162,6 @@ def spotify_callback():
         return jsonify({"error": "Spotify authentication failed"}), 500
 
 
-@app.route('/callback/tidal')
-def tidal_callback():
-    logger.info("Tidal callback received")
-    sync_manager = get_sync_manager()
-    try:
-        if sync_manager.tidal.check_auth_status():
-            logger.info("Tidal authentication successful")
-            return redirect(url_for('index'))
-        else:
-            logger.error("Tidal authentication failed")
-            return render_template('error.html', error="Tidal authentication failed. Please try again."), 401
-    except Exception as e:
-        logger.exception(f"Tidal authentication failed with exception: {str(e)}")
-        return render_template('error.html', error=f"Tidal authentication failed: {str(e)}"), 500
 
 
 if __name__ == '__main__':

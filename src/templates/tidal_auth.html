@@ -9,10 +9,16 @@
 <body>
     <h1>Tidal Authentication</h1>
     <p>Please authenticate with Tidal using the following link:</p>
-    <a href="{{ auth_url }}" target="_blank">Authenticate with Tidal</a>
+    <a href="{{ auth_url }}" target="_blank" id="authLink">Authenticate with Tidal</a>
     <p id="status">Waiting for authentication...</p>
 
     <script>
+        document.getElementById('authLink').addEventListener('click', function(event) {
+            event.preventDefault();
+            window.open(this.href, '_blank');
+            checkAuthStatus();
+        });
+
         function checkAuthStatus() {
             axios.get('/check_tidal_auth')
                 .then(response => {
@@ -20,6 +26,7 @@
                         document.getElementById('status').textContent = 'Authentication successful!';
                         window.location.href = '/';
                     } else {
+                        document.getElementById('status').textContent = 'Waiting for authentication...';
                         setTimeout(checkAuthStatus, 2000);
                     }
                 })
@@ -28,8 +35,6 @@
                     document.getElementById('status').textContent = 'Error checking authentication status.';
                 });
         }
-
-        setTimeout(checkAuthStatus, 2000);
     </script>
 </body>
 </html>
