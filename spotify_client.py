@@ -1,21 +1,56 @@
 import logging
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-
 import utils
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
+import urllib.parse
 
 logger = logging.getLogger(__name__)
 
+class CallbackHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(b"Authentication successful! You can close this window.")
+        self.server.path = self.path
 
 class SpotifyClient:
     def __init__(self, config):
-        self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
-            client_id=config['spotify']['client_id'],
-            client_secret=config['spotify']['client_secret'],
+        self.config = config
+        self.sp = None
+        self.authenticate()
+
+    def authenticate(self):
+        auth_manager = SpotifyOAuth(
+            client_id=self.config['spotify']['client_id'],
+            client_secret=self.config['spotify']['client_secret'],
             redirect_uri="http://localhost:8888/callback",
             scope="playlist-read-private playlist-modify-private",
             open_browser=False
-        ))
+        )
+        
+        auth_url = auth_manager.get_authorize_url()
+        print(f"Please visit this URL to authorize the application: {auth_url}")
+
+        # Start local server to listen for the callback
+        server = HTTPServer(('localhost', 8888), CallbackHandler)
+        server_thread = threading.Thread(target=server.handle_request)
+        server_thread.start()
+
+        server_thread.join()
+        
+        # Parse the callback URL
+        parsed_url = urllib.parse.urlparse(server.path)
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+        code = query_params.get('code', [None])[0]
+
+        if code:
+            token_info = auth_manager.get_access_token(code)
+            self.sp = spotipy.Spotify(auth=token_info['access_token'])
+        else:
+            raise Exception("Failed to get authorization code")
 
     @utils.retry_with_backoff()
     def get_playlists(self):
