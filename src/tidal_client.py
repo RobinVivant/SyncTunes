@@ -1,8 +1,8 @@
 import logging
+import threading
+import urllib.parse
 import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
-import urllib.parse
-import threading
 
 import tidalapi
 from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
@@ -32,7 +32,7 @@ class TidalClient:
     def login(self):
         try:
             login, future = self.session.login_oauth()
-            
+
             # Open the authorization URL in a web browser
             webbrowser.open(login.verification_uri_complete)
 
@@ -42,7 +42,7 @@ class TidalClient:
             server_thread.start()
 
             server_thread.join(timeout=60)  # Wait for a maximum of 60 seconds
-            
+
             if server_thread.is_alive():
                 server.shutdown()
                 raise AuthenticationError("Tidal authentication timed out")
@@ -50,7 +50,7 @@ class TidalClient:
             # Parse the callback URL
             parsed_url = urllib.parse.urlparse(server.path)
             query_params = urllib.parse.parse_qs(parsed_url.query)
-            
+
             # Check if the authentication was successful
             if 'code' in query_params:
                 future.result(timeout=30)  # Wait for a maximum of 30 seconds
