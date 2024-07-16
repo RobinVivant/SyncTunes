@@ -1,10 +1,19 @@
-import yaml
 import os
+from dotenv import load_dotenv
 
 def load_config():
-    config_path = 'config.yaml'
-    if not os.path.exists(config_path):
-        config_path = 'default_config.yaml'
+    load_dotenv()
     
-    with open(config_path, 'r') as file:
-        return yaml.safe_load(file)
+    return {
+        'spotify': {
+            'client_id': os.getenv('SPOTIFY_CLIENT_ID'),
+            'client_secret': os.getenv('SPOTIFY_CLIENT_SECRET'),
+        },
+        'tidal': {
+            'client_id': os.getenv('TIDAL_CLIENT_ID'),
+            'client_secret': os.getenv('TIDAL_CLIENT_SECRET'),
+        },
+        'database': {
+            'path': os.getenv('DATABASE_PATH', 'spotify_tidal_sync.db'),
+        }
+    }
