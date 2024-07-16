@@ -12,7 +12,6 @@ class SyncError(Exception):
     pass
 
 
-
 class SyncManager:
     def __init__(self, config):
         logger.info("Initializing Database")
@@ -23,7 +22,7 @@ class SyncManager:
         self.spotify = SpotifyClient(config, self.db)
         self.spotify.authenticate()  # Try to load existing token
         logger.info("SpotifyClient initialized")
-        
+
         logger.info("Initializing TidalClient")
         self.tidal = TidalClient(config, self.db)
         self.tidal.load_token()  # Try to load existing token
@@ -68,12 +67,12 @@ class SyncManager:
     def get_common_playlists(self):
         spotify_playlists = self.spotify.get_playlists()
         tidal_playlists = self.tidal.get_playlists()
-        
+
         spotify_names = set(playlist['name'] for playlist in spotify_playlists)
         tidal_names = set(playlist['name'] for playlist in tidal_playlists)
-        
+
         common_names = spotify_names.intersection(tidal_names)
-        
+
         return list(common_names)
 
     def sync_single_playlist(self, source_platform, target_platform, playlist_id):
@@ -103,7 +102,8 @@ class SyncManager:
                 source_tracks = source_client.get_playlist_tracks(playlist['id'])
             except Exception as e:
                 logger.error(f"Error fetching tracks for playlist {playlist['name']} from {source_platform}: {str(e)}")
-                raise SyncError(f"Error fetching tracks for playlist {playlist['name']} from {source_platform}: {str(e)}")
+                raise SyncError(
+                    f"Error fetching tracks for playlist {playlist['name']} from {source_platform}: {str(e)}")
 
             # Check if playlist exists on target platform
             target_playlist = next((p for p in target_client.get_playlists() if p['name'] == playlist['name']), None)
@@ -123,7 +123,8 @@ class SyncManager:
                 target_tracks = target_client.get_playlist_tracks(target_playlist_id)
             except Exception as e:
                 logger.error(f"Error fetching tracks for playlist {playlist['name']} from {target_platform}: {str(e)}")
-                raise SyncError(f"Error fetching tracks for playlist {playlist['name']} from {target_platform}: {str(e)}")
+                raise SyncError(
+                    f"Error fetching tracks for playlist {playlist['name']} from {target_platform}: {str(e)}")
 
             # Find tracks to add and remove
             source_track_ids = set(track['id'] for track in source_tracks)
@@ -142,7 +143,8 @@ class SyncManager:
                     except Exception as e:
                         logger.error(f"Error adding track {track['name']} to playlist on {target_platform}: {str(e)}")
                 else:
-                    logger.warning(f"No matching track found for {track['name']} by {', '.join(track['artists'])} on the target platform")
+                    logger.warning(
+                        f"No matching track found for {track['name']} by {', '.join(track['artists'])} on the target platform")
 
             # Remove tracks
             for track_id in tracks_to_remove:
