@@ -134,9 +134,10 @@ def spotify_auth():
 def tidal_auth():
     logger.info("Initiating Tidal authentication")
     sync_manager = get_sync_manager()
-    auth_url = sync_manager.tidal.get_auth_url()
+    auth_url = "https://" + sync_manager.tidal.get_auth_url()
     logger.info(f"Tidal auth URL: {auth_url}")
     return redirect(auth_url)
+
 
 @app.route('/check_tidal_auth', methods=['GET'])
 def check_tidal_auth():
