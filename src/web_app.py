@@ -35,8 +35,8 @@ def send_static(path):
 def get_spotify_playlists():
     logger.info("Fetching Spotify playlists")
     try:
-        playlists = sync_manager.get_cached_playlists('spotify')
-        logger.info(f"Successfully fetched {len(playlists)} Spotify playlists from cache")
+        playlists = sync_manager.refresh_playlists('spotify')
+        logger.info(f"Successfully fetched {len(playlists)} Spotify playlists")
         return jsonify(playlists), 200
     except Exception as e:
         logger.error(f"Error fetching Spotify playlists: {str(e)}")
@@ -46,8 +46,8 @@ def get_spotify_playlists():
 def get_tidal_playlists():
     logger.info("Fetching Tidal playlists")
     try:
-        playlists = sync_manager.get_cached_playlists('tidal')
-        logger.info(f"Successfully fetched {len(playlists)} Tidal playlists from cache")
+        playlists = sync_manager.refresh_playlists('tidal')
+        logger.info(f"Successfully fetched {len(playlists)} Tidal playlists")
         return jsonify(playlists), 200
     except Exception as e:
         logger.error(f"Error fetching Tidal playlists: {str(e)}")

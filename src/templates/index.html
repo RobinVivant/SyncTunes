@@ -7,14 +7,15 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #121212;
+            color: #e0e0e0;
         }
-        h1 {
+        h1, h2 {
             text-align: center;
-            color: #333;
+            color: #1DB954;
         }
         .playlist-container {
             display: flex;
@@ -23,34 +24,49 @@
         }
         .playlist-list {
             width: 45%;
-            border: 1px solid #ccc;
+            border: 1px solid #333;
             min-height: 300px;
-            padding: 10px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            background-color: #181818;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         .playlist-item {
             cursor: move;
-            padding: 10px;
-            margin: 5px 0;
-            background-color: #f0f0f0;
-            border-radius: 3px;
-            transition: background-color 0.3s;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: #282828;
+            border-radius: 5px;
+            transition: all 0.3s ease;
         }
         .playlist-item:hover {
-            background-color: #e0e0e0;
+            background-color: #333;
+            transform: translateY(-2px);
         }
         #message {
             text-align: center;
             margin-top: 20px;
             padding: 10px;
-            border-radius: 3px;
+            border-radius: 5px;
+            background-color: #282828;
         }
         .loading {
             display: none;
             text-align: center;
             margin-top: 20px;
+            color: #1DB954;
+        }
+        button {
+            background-color: #1DB954;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #1ed760;
         }
     </style>
 </head>
@@ -81,7 +97,8 @@
         function showMessage(message, isError = false) {
             const messageElement = document.getElementById('message');
             messageElement.innerText = message;
-            messageElement.style.backgroundColor = isError ? '#ffcccc' : '#ccffcc';
+            messageElement.style.backgroundColor = isError ? '#ff4444' : '#1DB954';
+            messageElement.style.color = 'white';
         }
 
         function loadPlaylists() {
@@ -113,7 +130,7 @@
 
         function refreshPlaylists(platform) {
             showLoading();
-            axios.post('/refresh_playlists', { platform: platform })
+            axios.get(`/${platform}_playlists`)
                 .then(response => {
                     updatePlaylistList(platform + 'Playlists', response.data);
                     showMessage(`${platform.charAt(0).toUpperCase() + platform.slice(1)} playlists refreshed successfully.`);
@@ -131,7 +148,7 @@
             const div = document.createElement('div');
             div.className = 'playlist-item';
             div.draggable = true;
-            div.textContent = playlist.name;
+            div.textContent = `${playlist.name} (${playlist.tracks} tracks)`;
             div.id = `${platform}-${playlist.id}`;
             div.setAttribute('data-id', playlist.id);
             div.setAttribute('data-platform', platform);
@@ -171,6 +188,8 @@
             })
             .then(response => {
                 showMessage(response.data.message);
+                refreshPlaylists(sourcePlatform);
+                refreshPlaylists(targetPlatform);
             })
             .catch(error => {
                 console.error('Error syncing playlist:', error);
