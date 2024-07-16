@@ -68,6 +68,11 @@ class TidalClient:
             return 'failed'
 
         try:
+            # Check if the login_future is properly initialized
+            if not self.login_future or len(self.login_future) < 2:
+                logger.error("login_future is not properly initialized")
+                return 'failed'
+
             # Check if the future is done without blocking
             if self.login_future[1].done():
                 login_result = self.login_future[1].result()
