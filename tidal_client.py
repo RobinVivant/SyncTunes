@@ -50,8 +50,7 @@ class TidalClient:
     def add_tracks_to_playlist(self, playlist_id, track_ids):
         try:
             playlist = self.session.playlist(playlist_id)
-            tracks = [self.session.track(track_id) for track_id in track_ids]
-            playlist.add(tracks)
+            playlist.add(track_ids)
         except ObjectNotFound as e:
             raise PlaylistModificationError(f"Playlist or track not found: {str(e)}")
         except TooManyRequests as e:
