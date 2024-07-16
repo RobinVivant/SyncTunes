@@ -9,4 +9,4 @@ if __name__ == '__main__':
     server.watch('src/templates/**/*.html')
     server.watch('src/static/**/*.js')
     server.watch('src/static/**/*.css')
-    server.serve(port=5000, host='localhost')
+    server.serve(port=8888, host='localhost')
