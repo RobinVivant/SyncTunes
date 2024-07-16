@@ -29,11 +29,12 @@ class TidalClient:
 
             if auth_code:
                 logger.info("Auth code provided, completing OAuth flow")
-                self.session.load_oauth_session(auth_code, self.session.expiry_time)
+                expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
+                self.session.load_oauth_session(auth_code, expiry_time_str)
                 if not self.session.check_login():
                     logger.error("Failed to login to Tidal. Please check your credentials.")
                     raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
-                self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
+                self.db.store_token('tidal', self.session.access_token, expiry_time_str)
                 logger.info("Tidal login successful")
             else:
                 logger.info("No auth code provided, attempting to use stored token")
