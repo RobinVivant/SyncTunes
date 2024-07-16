@@ -143,10 +143,12 @@ def tidal_auth():
 def check_tidal_auth():
     sync_manager = get_sync_manager()
     auth_status = sync_manager.tidal.check_auth_status()
-    if auth_status:
+    if auth_status == 'success':
         return jsonify({"status": "success"})
-    else:
+    elif auth_status == 'pending':
         return jsonify({"status": "pending"})
+    else:
+        return jsonify({"status": "failed"})
 
 
 @app.route('/callback/spotify')

@@ -65,7 +65,7 @@ class TidalClient:
 
     def check_auth_status(self):
         if not hasattr(self, 'login_future'):
-            return False
+            return 'failed'
 
         try:
             login_result = self.login_future[1].result(timeout=0.1)
@@ -74,12 +74,12 @@ class TidalClient:
                 expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
                 self.db.store_token('tidal', self.session.access_token, expiry_time_str)
                 logger.info("Tidal login successful")
-                return True
+                return 'success'
         except concurrent.futures.TimeoutError:
-            return False
+            return 'pending'
         except Exception as e:
             logger.error(f"Error checking Tidal auth status: {str(e)}")
-            return False
+            return 'failed'
 
     def load_token(self):
         token, expires_at = self.db.get_token('tidal')

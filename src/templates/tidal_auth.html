@@ -25,14 +25,17 @@
                     if (response.data.status === 'success') {
                         document.getElementById('status').textContent = 'Authentication successful!';
                         window.location.href = '/';
-                    } else {
+                    } else if (response.data.status === 'pending') {
                         document.getElementById('status').textContent = 'Waiting for authentication...';
                         setTimeout(checkAuthStatus, 2000);
+                    } else {
+                        document.getElementById('status').textContent = 'Authentication failed. Please try again.';
                     }
                 })
                 .catch(error => {
                     console.error('Error checking auth status:', error);
                     document.getElementById('status').textContent = 'Error checking authentication status.';
+                    setTimeout(checkAuthStatus, 5000);  // Retry after 5 seconds on error
                 });
         }
     </script>
