@@ -59,8 +59,8 @@ spotify:
   client_secret: your_spotify_client_secret
 
 tidal:
-  username: your_tidal_username
-  password: your_tidal_password
+  client_id: your_tidal_client_id
+  client_secret: your_tidal_client_secret
 
 database:
   path: path_to_your_sqlite_database

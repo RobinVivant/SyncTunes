@@ -1,4 +1,8 @@
 import logging
+import webbrowser
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import urllib.parse
+import threading
 
 import tidalapi
 from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
@@ -10,6 +14,15 @@ class PlaylistModificationError(Exception):
     pass
 
 
+class CallbackHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(b"Authentication successful! You can close this window.")
+        self.server.path = self.path
+
+
 class TidalClient:
     def __init__(self, config):
         self.session = tidalapi.Session()
@@ -18,8 +31,29 @@ class TidalClient:
 
     def login(self):
         try:
-            login_success = self.session.login(self.config['tidal']['username'], self.config['tidal']['password'])
-            if not login_success:
+            login, future = self.session.login_oauth()
+            
+            # Open the authorization URL in a web browser
+            webbrowser.open(login.verification_uri_complete)
+
+            # Start local server to listen for the callback
+            server = HTTPServer(('localhost', 8888), CallbackHandler)
+            server_thread = threading.Thread(target=server.handle_request)
+            server_thread.start()
+
+            server_thread.join()
+            
+            # Parse the callback URL
+            parsed_url = urllib.parse.urlparse(server.path)
+            query_params = urllib.parse.parse_qs(parsed_url.query)
+            
+            # Check if the authentication was successful
+            if 'code' in query_params:
+                future.result()
+            else:
+                raise AuthenticationError("Failed to login to Tidal. Authorization code not received.")
+
+            if not self.session.check_login():
                 raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
         except AuthenticationError as e:
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
