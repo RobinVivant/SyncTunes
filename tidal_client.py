@@ -1,5 +1,5 @@
 import tidalapi
-from tidalapi.exceptions import TidalError
+from tidalapi import TidalError
 
 
 class AuthenticationError(Exception):
