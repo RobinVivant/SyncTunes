@@ -36,6 +36,9 @@ def get_spotify_playlists():
     logger.info("Fetching Spotify playlists")
     try:
         sync_manager = get_sync_manager()
+        if not sync_manager.spotify.sp:
+            logger.info("Spotify client not authenticated, initiating authentication")
+            return jsonify({"error": "Authentication required", "platform": "spotify"}), 401
         playlists = sync_manager.refresh_playlists('spotify')
         logger.info(f"Successfully fetched {len(playlists)} Spotify playlists")
         return jsonify(playlists), 200
@@ -48,6 +51,9 @@ def get_tidal_playlists():
     logger.info("Fetching Tidal playlists")
     try:
         sync_manager = get_sync_manager()
+        if not sync_manager.tidal.session:
+            logger.info("Tidal client not authenticated, initiating authentication")
+            return jsonify({"error": "Authentication required", "platform": "tidal"}), 401
         playlists = sync_manager.refresh_playlists('tidal')
         logger.info(f"Successfully fetched {len(playlists)} Tidal playlists")
         return jsonify(playlists), 200
@@ -116,6 +122,18 @@ def spotify_auth():
     except Exception as e:
         logger.error(f"Spotify authentication failed: {str(e)}")
         return jsonify({"error": "Spotify authentication failed"}), 500
+
+@app.route('/tidal_auth', methods=['GET'])
+def tidal_auth():
+    logger.info("Initiating Tidal authentication")
+    try:
+        sync_manager = get_sync_manager()
+        sync_manager.tidal.login()
+        logger.info("Tidal authentication successful")
+        return jsonify({"message": "Tidal authentication successful"}), 200
+    except Exception as e:
+        logger.error(f"Tidal authentication failed: {str(e)}")
+        return jsonify({"error": "Tidal authentication failed"}), 500
 
 if __name__ == '__main__':
     logger.info("Starting Flask application")

@@ -104,11 +104,26 @@
         function loadPlaylists() {
             showLoading();
             Promise.all([
-                axios.get('/spotify_playlists'),
-                axios.get('/tidal_playlists')
+                axios.get('/spotify_playlists').catch(error => ({ error })),
+                axios.get('/tidal_playlists').catch(error => ({ error }))
             ]).then(([spotifyResponse, tidalResponse]) => {
-                updatePlaylistList('spotifyPlaylists', spotifyResponse.data);
-                updatePlaylistList('tidalPlaylists', tidalResponse.data);
+                if (spotifyResponse.error && spotifyResponse.error.response && spotifyResponse.error.response.status === 401) {
+                    showMessage('Spotify authentication required. Please authenticate.', true);
+                    window.location.href = '/spotify_auth';
+                } else if (spotifyResponse.data) {
+                    updatePlaylistList('spotifyPlaylists', spotifyResponse.data);
+                }
+
+                if (tidalResponse.error && tidalResponse.error.response && tidalResponse.error.response.status === 401) {
+                    showMessage('Tidal authentication required. Please authenticate.', true);
+                    window.location.href = '/tidal_auth';
+                } else if (tidalResponse.data) {
+                    updatePlaylistList('tidalPlaylists', tidalResponse.data);
+                }
+
+                if (spotifyResponse.error || tidalResponse.error) {
+                    showMessage('Error loading some playlists. Please try again.', true);
+                }
             }).catch(error => {
                 console.error('Error loading playlists:', error);
                 showMessage('Error loading playlists. Please try again.', true);
