@@ -16,10 +16,10 @@
         document.getElementById('authLink').addEventListener('click', function(event) {
             event.preventDefault();
             window.open(this.href, '_blank');
-            checkAuthStatus();
         });
 
         function checkAuthStatus() {
+            console.log('Checking Tidal auth status...');
             axios.get('/check_tidal_auth')
                 .then(response => {
                     if (response.data.status === 'success') {
@@ -38,6 +38,9 @@
                     setTimeout(checkAuthStatus, 5000);  // Retry after 5 seconds on error
                 });
         }
+
+        // Start checking auth status as soon as the page loads
+        window.onload = checkAuthStatus;
     </script>
 </body>
 </html>
