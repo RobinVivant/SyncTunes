@@ -136,7 +136,7 @@ def tidal_auth():
     sync_manager = get_sync_manager()
     auth_url = "https://" + sync_manager.tidal.get_auth_url()
     logger.info(f"Tidal auth URL: {auth_url}")
-    return redirect(auth_url)
+    return jsonify({"auth_url": auth_url})
 
 
 @app.route('/check_tidal_auth', methods=['GET'])
