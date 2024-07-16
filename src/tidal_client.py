@@ -30,7 +30,7 @@ class TidalClient:
                 expires_at = datetime.datetime.fromisoformat(expires_at)
                 if expires_at > datetime.datetime.now():
                     self.session = tidalapi.Session()
-                    self.session.load_oauth_session(token, expires_at)
+                    self.session.load_oauth_session(token, expires_at.isoformat())
                     logger.info("Tidal token loaded from database")
                     return
 
