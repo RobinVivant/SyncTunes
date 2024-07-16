@@ -1,7 +1,6 @@
 # Spotify-Tidal Playlist Sync
 
-This project is a command-line tool that allows bidirectional synchronization of playlists between Spotify and Tidal
-music streaming platforms.
+This project is a command-line tool that allows bidirectional synchronization of playlists between Spotify and Tidal music streaming platforms.
 
 ## Features
 
@@ -12,6 +11,8 @@ music streaming platforms.
 - Caching of playlist data to improve performance
 - Error handling with retries and throttling
 - Logging of warnings for tracks not found on the target platform
+- Comprehensive test suite for reliability and maintainability
+- CI/CD workflow for automated testing and deployment
 
 ## Installation
 
@@ -40,6 +41,12 @@ To sync specific playlists:
 
 ```
 python main.py --playlists "Playlist1" "Playlist2"
+```
+
+To run all tests:
+
+```
+python main.py --run-tests
 ```
 
 ## Configuration
@@ -71,16 +78,33 @@ This project is structured with the following main components:
 - `database.py`: Handles local caching of playlist data
 - `utils.py`: Contains utility functions
 
+The `tests/` directory contains unit and integration tests for each component.
+
+## Testing
+
+To run the test suite:
+
+```
+python run_tests.py
+```
+
+This will discover and run all tests in the `tests/` directory.
+
+## CI/CD
+
+This project uses a CI/CD workflow to automatically run tests and ensure code quality. The workflow is defined in the repository and runs on every push and pull request.
+
 ## Future Improvements
 
 - Implement a graphical user interface (GUI)
 - Add support for real-time synchronization
 - Improve track matching between platforms
 - Implement more sophisticated conflict resolution strategies
+- Expand test coverage and add more integration tests
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please feel free to submit a Pull Request. Ensure that your code passes all tests and follows the project's coding standards.
 
 ## License
 
