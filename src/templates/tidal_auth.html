@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tidal Authentication</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Tidal Authentication</h1>
+    <p>Please authenticate with Tidal using the following link:</p>
+    <a href="{{ auth_url }}" target="_blank">Authenticate with Tidal</a>
+    <p id="status">Waiting for authentication...</p>
+
+    <script>
+        function checkAuthStatus() {
+            axios.get('/check_tidal_auth')
+                .then(response => {
+                    if (response.data.status === 'success') {
+                        document.getElementById('status').textContent = 'Authentication successful!';
+                        window.location.href = '/';
+                    } else {
+                        setTimeout(checkAuthStatus, 2000);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking auth status:', error);
+                    document.getElementById('status').textContent = 'Error checking authentication status.';
+                });
+        }
+
+        setTimeout(checkAuthStatus, 2000);
+    </script>
+</body>
+</html>

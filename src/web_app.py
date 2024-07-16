@@ -134,9 +134,18 @@ def spotify_auth():
 def tidal_auth():
     logger.info("Initiating Tidal authentication")
     sync_manager = get_sync_manager()
-    auth_url = "http://" + sync_manager.tidal.get_auth_url()
+    auth_url = sync_manager.tidal.get_auth_url()
     logger.info(f"Tidal auth URL: {auth_url}")
-    return redirect(auth_url)
+    return render_template('tidal_auth.html', auth_url=auth_url)
+
+@app.route('/check_tidal_auth', methods=['GET'])
+def check_tidal_auth():
+    sync_manager = get_sync_manager()
+    auth_status = sync_manager.tidal.check_auth_status()
+    if auth_status:
+        return jsonify({"status": "success"})
+    else:
+        return jsonify({"status": "pending"})
 
 
 @app.route('/callback/spotify')
@@ -155,23 +164,13 @@ def spotify_callback():
 @app.route('/callback/tidal')
 def tidal_callback():
     logger.info("Tidal callback received")
-    code = request.args.get('code')
-    logger.info(f"Received Tidal auth code: {code}")
-
-    # Log all request details
-    logger.info(f"Request method: {request.method}")
-    logger.info(f"Request headers: {request.headers}")
-    logger.info(f"Request args: {request.args}")
-
     sync_manager = get_sync_manager()
     try:
-        result = sync_manager.tidal.login(code)
-        logger.info(f"Tidal login result: {result}")
-        if result:
+        if sync_manager.tidal.check_auth_status():
             logger.info("Tidal authentication successful")
             return redirect(url_for('index'))
         else:
-            logger.error("Tidal authentication failed: login returned False")
+            logger.error("Tidal authentication failed")
             return render_template('error.html', error="Tidal authentication failed. Please try again."), 401
     except Exception as e:
         logger.exception(f"Tidal authentication failed with exception: {str(e)}")

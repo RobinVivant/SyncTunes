@@ -56,9 +56,27 @@ class TidalClient:
 
     def get_auth_url(self):
         self.session = tidalapi.Session()
-        login, future = self.session.login_oauth()
-        logger.info(f"Tidal auth URL: {login.verification_uri_complete}")
-        return login.verification_uri_complete
+        self.login_future = self.session.login_oauth()
+        logger.info(f"Tidal auth URL: {self.login_future[0].verification_uri_complete}")
+        return self.login_future[0].verification_uri_complete
+
+    def check_auth_status(self):
+        if not hasattr(self, 'login_future'):
+            return False
+        
+        try:
+            login_result = self.login_future[1].result(timeout=0.1)
+            if login_result:
+                self.session = login_result
+                expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
+                self.db.store_token('tidal', self.session.access_token, expiry_time_str)
+                logger.info("Tidal login successful")
+                return True
+        except concurrent.futures.TimeoutError:
+            return False
+        except Exception as e:
+            logger.error(f"Error checking Tidal auth status: {str(e)}")
+            return False
 
     def load_token(self):
         token, expires_at = self.db.get_token('tidal')
