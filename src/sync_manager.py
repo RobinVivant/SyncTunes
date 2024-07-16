@@ -38,6 +38,17 @@ class SyncManager:
             else:
                 utils.log_warning(f"Playlist '{name}' not found on either platform")
 
+    def get_common_playlists(self):
+        spotify_playlists = self.spotify.get_playlists()
+        tidal_playlists = self.tidal.get_playlists()
+        
+        spotify_names = set(playlist['name'] for playlist in spotify_playlists)
+        tidal_names = set(playlist['name'] for playlist in tidal_playlists)
+        
+        common_names = spotify_names.intersection(tidal_names)
+        
+        return list(common_names)
+
     def sync_playlist(self, playlist):
         try:
             source_platform = 'spotify' if isinstance(playlist, dict) else 'tidal'

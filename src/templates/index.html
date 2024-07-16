@@ -10,6 +10,9 @@
     <h1>Spotify-Tidal Playlist Sync</h1>
     <button onclick="syncAll()">Sync All Playlists</button>
     <br><br>
+    <h2>Common Playlists</h2>
+    <ul id="playlistList"></ul>
+    <br>
     <input type="text" id="playlistInput" placeholder="Enter playlist names, comma-separated">
     <button onclick="syncSpecific()">Sync Specific Playlists</button>
     <p id="message"></p>
@@ -35,6 +38,25 @@
                     document.getElementById('message').innerText = 'Error: ' + error.response.data.error;
                 });
         }
+
+        function loadPlaylists() {
+            axios.get('/playlists')
+                .then(response => {
+                    const playlistList = document.getElementById('playlistList');
+                    playlistList.innerHTML = '';
+                    response.data.forEach(playlist => {
+                        const li = document.createElement('li');
+                        li.textContent = playlist;
+                        playlistList.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading playlists:', error);
+                });
+        }
+
+        // Load playlists when the page loads
+        window.onload = loadPlaylists;
     </script>
 </body>
 </html>

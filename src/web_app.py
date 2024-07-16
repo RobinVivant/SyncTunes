@@ -22,5 +22,10 @@ def sync():
     else:
         return jsonify({"error": "Invalid request"}), 400
 
+@app.route('/playlists', methods=['GET'])
+def get_playlists():
+    playlists = sync_manager.get_common_playlists()
+    return jsonify(playlists), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
