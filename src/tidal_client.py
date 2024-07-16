@@ -28,12 +28,11 @@ class TidalClient:
             self.session = tidalapi.Session()
 
             if auth_code:
-                login_result = self.session.login_oauth(auth_code)
-
-                if not login_result or not self.session.check_login():
+                logger.info("Auth code provided, completing OAuth flow")
+                self.session.load_oauth_session(auth_code, self.session.expiry_time)
+                if not self.session.check_login():
                     logger.error("Failed to login to Tidal. Please check your credentials.")
                     raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
-
                 self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
                 logger.info("Tidal login successful")
             else:
