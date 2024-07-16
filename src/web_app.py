@@ -37,6 +37,9 @@ def get_spotify_playlists():
         playlists = sync_manager.spotify.get_playlists()
         logger.info(f"Successfully fetched {len(playlists)} Spotify playlists")
         return jsonify(playlists), 200
+    except AuthenticationError as e:
+        logger.error(f"Spotify authentication error: {str(e)}")
+        return jsonify({"error": "Spotify authentication failed. Please check your credentials."}), 401
     except Exception as e:
         logger.error(f"Error fetching Spotify playlists: {str(e)}")
         return jsonify({"error": "Failed to fetch Spotify playlists"}), 500
