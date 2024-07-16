@@ -190,3 +190,8 @@ class TidalClient:
         except Exception as e:
             logger.error(f"Error searching for tracks: {str(e)}")
             return []
+
+    def disconnect(self):
+        self.session = None
+        self.login_future = None
+        logger.info("Tidal client disconnected")
