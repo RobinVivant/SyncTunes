@@ -47,7 +47,11 @@ class SyncManager:
             target_client = self.tidal if target_platform == 'tidal' else self.spotify
 
             # Get source playlist tracks
-            source_tracks = source_client.get_playlist_tracks(playlist['id'])
+            try:
+                source_tracks = source_client.get_playlist_tracks(playlist['id'])
+            except Exception as e:
+                logger.error(f"Error fetching tracks for playlist {playlist['name']} from {source_platform}: {str(e)}")
+                return
 
             # Check if playlist exists on target platform
             target_playlist = next((p for p in target_client.get_playlists() if p['name'] == playlist['name']), None)

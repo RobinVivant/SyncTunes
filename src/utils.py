@@ -42,9 +42,16 @@ def find_matching_track(track, platform_client):
         search_results = platform_client.search_tracks(search_query)
 
         if search_results:
-            return search_results[0]
-        logger.info(f"No matching track found for: {search_query}")
-        return None
+            # Compare track details to find the best match
+            for result in search_results:
+                if (result['name'].lower() == track['name'].lower() and
+                    any(artist.lower() in [a.lower() for a in track['artists']] for artist in result['artists'])):
+                    return result
+        
+        logger.info(f"No exact matching track found for: {search_query}")
+        
+        # If no exact match, return the first result as a best guess
+        return search_results[0] if search_results else None
     except KeyError as e:
         logger.error(f"KeyError in find_matching_track: {str(e)}")
         return None

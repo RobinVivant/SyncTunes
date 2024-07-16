@@ -39,8 +39,12 @@ class SpotifyClient:
         server_thread = threading.Thread(target=server.handle_request)
         server_thread.start()
 
-        server_thread.join()
+        server_thread.join(timeout=60)  # Wait for a maximum of 60 seconds
         
+        if server_thread.is_alive():
+            server.shutdown()
+            raise Exception("Spotify authentication timed out")
+
         # Parse the callback URL
         parsed_url = urllib.parse.urlparse(server.path)
         query_params = urllib.parse.parse_qs(parsed_url.query)

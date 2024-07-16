@@ -41,21 +41,25 @@ class TidalClient:
             server_thread = threading.Thread(target=server.handle_request)
             server_thread.start()
 
-            server_thread.join()
+            server_thread.join(timeout=60)  # Wait for a maximum of 60 seconds
             
+            if server_thread.is_alive():
+                server.shutdown()
+                raise AuthenticationError("Tidal authentication timed out")
+
             # Parse the callback URL
             parsed_url = urllib.parse.urlparse(server.path)
             query_params = urllib.parse.parse_qs(parsed_url.query)
             
             # Check if the authentication was successful
             if 'code' in query_params:
-                future.result()
+                future.result(timeout=30)  # Wait for a maximum of 30 seconds
             else:
                 raise AuthenticationError("Failed to login to Tidal. Authorization code not received.")
 
             if not self.session.check_login():
                 raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
-        except AuthenticationError as e:
+        except Exception as e:
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
 
     def check_session(self):
