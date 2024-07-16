@@ -1,5 +1,6 @@
 import tidalapi
 
+
 class TidalClient:
     def __init__(self, config):
         self.session = tidalapi.Session()

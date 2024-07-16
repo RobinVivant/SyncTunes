@@ -1,7 +1,9 @@
 import argparse
 import sys
-from sync_manager import SyncManager
+
 from config import load_config
+from sync_manager import SyncManager
+
 
 def main():
     parser = argparse.ArgumentParser(description="Spotify-Tidal Playlist Sync")
@@ -30,6 +32,7 @@ def main():
     except Exception as e:
         print(f"An error occurred: {str(e)}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
