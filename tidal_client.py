@@ -61,8 +61,8 @@ class TidalClient:
     def remove_tracks_from_playlist(self, playlist_id, track_ids):
         try:
             playlist = self.session.playlist(playlist_id)
-            tracks = [self.session.track(track_id) for track_id in track_ids]
-            playlist.remove(tracks)
+            for track_id in track_ids:
+                playlist.remove_by_id(track_id)
         except ObjectNotFound as e:
             raise PlaylistModificationError(f"Playlist or track not found: {str(e)}")
         except TooManyRequests as e:
