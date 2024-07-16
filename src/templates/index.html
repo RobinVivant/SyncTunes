@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify-Tidal Playlist Sync</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>Spotify-Tidal Playlist Sync</h1>
+    <button onclick="syncAll()">Sync All Playlists</button>
+    <br><br>
+    <input type="text" id="playlistInput" placeholder="Enter playlist names, comma-separated">
+    <button onclick="syncSpecific()">Sync Specific Playlists</button>
+    <p id="message"></p>
+
+    <script>
+        function syncAll() {
+            axios.post('/sync', { all: true })
+                .then(response => {
+                    document.getElementById('message').innerText = response.data.message;
+                })
+                .catch(error => {
+                    document.getElementById('message').innerText = 'Error: ' + error.response.data.error;
+                });
+        }
+
+        function syncSpecific() {
+            const playlists = document.getElementById('playlistInput').value.split(',').map(p => p.trim());
+            axios.post('/sync', { playlists: playlists })
+                .then(response => {
+                    document.getElementById('message').innerText = response.data.message;
+                })
+                .catch(error => {
+                    document.getElementById('message').innerText = 'Error: ' + error.response.data.error;
+                });
+        }
+    </script>
+</body>
+</html>

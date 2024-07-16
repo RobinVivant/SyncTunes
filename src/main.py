@@ -7,6 +7,7 @@ import unittest
 from config import load_config
 from sync_manager import SyncManager, SyncError
 from tidal_client import AuthenticationError, PlaylistModificationError
+from web_app import app
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ def main():
     parser = argparse.ArgumentParser(description="Spotify-Tidal Playlist Sync")
     parser.add_argument("--all", action="store_true", help="Sync all playlists")
     parser.add_argument("--playlists", nargs="+", help="List of playlist names to sync")
-    parser.add_argument("--gui", action="store_true", help="Launch GUI (not implemented yet)")
+    parser.add_argument("--gui", action="store_true", help="Launch web GUI")
     parser.add_argument("--run-tests", action="store_true", help="Run all tests")
     args = parser.parse_args()
 
@@ -41,7 +42,9 @@ def main():
             sys.exit(0 if success else 1)
 
         if args.gui:
-            print("GUI not implemented yet. Falling back to CLI.")
+            print("Launching web GUI...")
+            app.run(debug=True)
+            return
 
         if not args.all and not args.playlists:
             print("Please specify --all or --playlists")
