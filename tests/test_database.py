@@ -1,11 +1,32 @@
 import unittest
 import sqlite3
+import os
 from database import Database
 
 class TestDatabase(unittest.TestCase):
     def setUp(self):
         self.config = {'database': {'path': ':memory:'}}
         self.db = Database(self.config)
+
+    @classmethod
+    def setUpClass(cls):
+        # Create a test configuration file
+        with open('test_config.yaml', 'w') as f:
+            f.write("""
+            spotify:
+              client_id: test_spotify_client_id
+              client_secret: test_spotify_client_secret
+            tidal:
+              client_id: test_tidal_client_id
+              client_secret: test_tidal_client_secret
+            database:
+              path: :memory:
+            """)
+
+    @classmethod
+    def tearDownClass(cls):
+        # Remove the test configuration file
+        os.remove('test_config.yaml')
 
     def test_create_tables(self):
         cursor = self.db.conn.cursor()

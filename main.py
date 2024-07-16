@@ -48,7 +48,11 @@ def main():
             parser.print_help()
             sys.exit(1)
 
-        config = load_config()
+        try:
+            config = load_config()
+        except FileNotFoundError:
+            print("Configuration file not found. Using default configuration.")
+            config = load_config()  # This will now load the default config
         sync_manager = SyncManager(config)
 
         if args.all:
