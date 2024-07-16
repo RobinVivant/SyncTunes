@@ -1,6 +1,6 @@
+import concurrent.futures
 import datetime
 import logging
-import concurrent.futures
 
 import requests
 import tidalapi
@@ -35,11 +35,11 @@ class TidalClient:
                 login, future = login_future
                 logger.info(f"OAuth login result: {login}")
                 logger.info(f"OAuth future result: {future}")
-                
+
                 if not self.session.check_login():
                     logger.error("Failed to login to Tidal. Please check your credentials.")
                     return False
-                
+
                 expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
                 self.db.store_token('tidal', self.session.access_token, expiry_time_str)
                 logger.info("Tidal login successful")
@@ -66,7 +66,7 @@ class TidalClient:
     def check_auth_status(self):
         if not hasattr(self, 'login_future'):
             return False
-        
+
         try:
             login_result = self.login_future[1].result(timeout=0.1)
             if login_result:
