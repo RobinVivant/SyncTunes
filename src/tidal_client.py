@@ -1,5 +1,6 @@
 import logging
 import threading
+import time
 import urllib.parse
 import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -40,8 +41,10 @@ class TidalClient:
             logger.info("OAuth login initiated")
 
             # Open the authorization URL in a web browser
-            webbrowser.open(login.verification_uri_complete)
-            logger.info("Authorization URL opened in web browser")
+            auth_url = login.verification_uri_complete
+            print(f"\nPlease open this URL in your web browser if it doesn't open automatically:\n{auth_url}\n")
+            webbrowser.open(auth_url)
+            logger.info("Authorization URL provided to user")
 
             # Start local server to listen for the callback
             server = HTTPServer(('localhost', 8888), CallbackHandler)
