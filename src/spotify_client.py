@@ -2,6 +2,7 @@ import logging
 import threading
 import urllib.parse
 import webbrowser
+import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
 import os
@@ -48,7 +49,8 @@ class SpotifyClient:
                 logger.info("Spotify token loaded from database")
 
     def save_token(self):
-        self.db.store_token('spotify', self.token_info['access_token'], self.token_info['expires_at'].isoformat())
+        expires_at = datetime.datetime.fromtimestamp(self.token_info['expires_at'])
+        self.db.store_token('spotify', self.token_info['access_token'], expires_at.isoformat())
         logger.info("Spotify token saved to database")
 
     def authenticate(self):
