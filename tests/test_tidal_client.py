@@ -57,5 +57,34 @@ class TestTidalClient(unittest.TestCase):
         self.tidal_client.remove_tracks_from_playlist('playlist_id', ['track_id'])
         mock_session.return_value.playlist.return_value.remove_by_id.assert_called_once_with('track_id')
 
+    @patch('tidalapi.Session')
+    def test_create_playlist(self, mock_session):
+        mock_session.return_value.user.create_playlist.return_value.id = 'new_playlist_id'
+        playlist_id = self.tidal_client.create_playlist('New Playlist')
+        self.assertEqual(playlist_id, 'new_playlist_id')
+
+    @patch('tidalapi.Session')
+    def test_get_playlist_by_name(self, mock_session):
+        mock_playlist = MagicMock()
+        mock_playlist.id = '1'
+        mock_playlist.name = 'Playlist 1'
+        mock_playlist.num_tracks = 10
+        mock_session.return_value.user.playlists.return_value = [mock_playlist]
+        playlist = self.tidal_client.get_playlist_by_name('Playlist 1')
+        self.assertIsNotNone(playlist)
+        self.assertEqual(playlist['name'], 'Playlist 1')
+
+    @patch('tidalapi.Session')
+    def test_search_tracks(self, mock_session):
+        mock_track = MagicMock()
+        mock_track.id = '1'
+        mock_track.name = 'Track 1'
+        mock_track.artists = [MagicMock(name='Artist 1')]
+        mock_track.album.name = 'Album 1'
+        mock_session.return_value.search.return_value.tracks = [mock_track]
+        tracks = self.tidal_client.search_tracks('query')
+        self.assertEqual(len(tracks), 1)
+        self.assertEqual(tracks[0]['name'], 'Track 1')
+
 if __name__ == '__main__':
     unittest.main()
