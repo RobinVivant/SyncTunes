@@ -12,29 +12,56 @@ class SpotifyClient:
         ))
 
     def get_playlists(self):
-        results = self.sp.current_user_playlists()
         playlists = []
-        for item in results['items']:
-            playlists.append({
-                'id': item['id'],
-                'name': item['name'],
-                'tracks': item['tracks']['total']
-            })
+        results = self.sp.current_user_playlists()
+        while results:
+            for item in results['items']:
+                playlists.append({
+                    'id': item['id'],
+                    'name': item['name'],
+                    'tracks': item['tracks']['total']
+                })
+            if results['next']:
+                results = self.sp.next(results)
+            else:
+                results = None
         return playlists
 
     def get_playlist_tracks(self, playlist_id):
-        results = self.sp.playlist_tracks(playlist_id)
         tracks = []
-        for item in results['items']:
-            track = item['track']
-            tracks.append({
+        results = self.sp.playlist_tracks(playlist_id)
+        while results:
+            for item in results['items']:
+                track = item['track']
+                tracks.append({
+                    'id': track['id'],
+                    'name': track['name'],
+                    'artists': [artist['name'] for artist in track['artists']],
+                    'album': track['album']['name'],
+                    'uri': track['uri']
+                })
+            if results['next']:
+                results = self.sp.next(results)
+            else:
+                results = None
+        return tracks
+
+    def get_playlist_by_name(self, name):
+        playlists = self.get_playlists()
+        return next((p for p in playlists if p['name'] == name), None)
+
+    def search_tracks(self, query):
+        results = self.sp.search(q=query, type='track', limit=1)
+        if results['tracks']['items']:
+            track = results['tracks']['items'][0]
+            return [{
                 'id': track['id'],
                 'name': track['name'],
                 'artists': [artist['name'] for artist in track['artists']],
                 'album': track['album']['name'],
                 'uri': track['uri']
-            })
-        return tracks
+            }]
+        return []
 
     def create_playlist(self, name):
         user_id = self.sp.me()['id']

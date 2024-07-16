@@ -48,3 +48,20 @@ class TidalClient:
             playlist.remove(tracks)
         except TidalError as e:
             raise Exception(f"Failed to remove tracks from Tidal playlist: {str(e)}")
+
+    def get_playlist_by_name(self, name):
+        playlists = self.get_playlists()
+        return next((p for p in playlists if p['name'] == name), None)
+
+    def search_tracks(self, query):
+        results = self.session.search('track', query)
+        if results.tracks:
+            track = results.tracks[0]
+            return [{
+                'id': track.id,
+                'name': track.name,
+                'artists': [artist.name for artist in track.artists],
+                'album': track.album.name,
+                'uri': f'tidal:track:{track.id}'
+            }]
+        return []
