@@ -57,7 +57,6 @@ Create a `config.yaml` file in the project root with the following structure:
 spotify:
   client_id: your_spotify_client_id
   client_secret: your_spotify_client_secret
-  redirect_uri: your_spotify_redirect_uri
 
 tidal:
   username: your_tidal_username

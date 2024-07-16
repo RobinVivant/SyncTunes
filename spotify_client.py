@@ -12,8 +12,9 @@ class SpotifyClient:
         self.sp = spotipy.Spotify(auth_manager=SpotifyOAuth(
             client_id=config['spotify']['client_id'],
             client_secret=config['spotify']['client_secret'],
-            redirect_uri=config['spotify']['redirect_uri'],
-            scope="playlist-read-private playlist-modify-private"
+            redirect_uri="http://localhost:8888/callback",
+            scope="playlist-read-private playlist-modify-private",
+            open_browser=False
         ))
 
     @utils.retry_with_backoff()
