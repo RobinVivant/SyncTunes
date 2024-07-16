@@ -45,7 +45,8 @@ def main():
             print("Launching web GUI...")
             logger.info("Starting Flask application from main.py")
             try:
-                app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
+                print("GUI is available at: http://localhost:5000")
+                app.run(debug=True, use_reloader=False, host='localhost', port=5000)
             except Exception as e:
                 logger.error(f"Failed to start Flask application: {str(e)}")
                 sys.exit(1)

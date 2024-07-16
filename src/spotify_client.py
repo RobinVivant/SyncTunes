@@ -3,6 +3,8 @@ import threading
 import urllib.parse
 import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+import os
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
@@ -25,12 +27,31 @@ class SpotifyClient:
     def __init__(self, config):
         self.config = config
         self.sp = None
-        self.authenticate()
+        self.auth_manager = None
+        self.token_info = None
+        self.load_token()
+
+    def load_token(self):
+        token_path = 'spotify_token.json'
+        if os.path.exists(token_path):
+            with open(token_path, 'r') as f:
+                self.token_info = json.load(f)
+            if self.token_info:
+                self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
+                logger.info("Spotify token loaded from file")
+
+    def save_token(self):
+        with open('spotify_token.json', 'w') as f:
+            json.dump(self.token_info, f)
+        logger.info("Spotify token saved to file")
 
     def authenticate(self):
+        if self.sp:
+            return
+
         redirect_uri = "http://localhost:8888/callback"
 
-        auth_manager = SpotifyOAuth(
+        self.auth_manager = SpotifyOAuth(
             client_id=self.config['spotify']['client_id'],
             client_secret=self.config['spotify']['client_secret'],
             redirect_uri=redirect_uri,
@@ -38,7 +59,7 @@ class SpotifyClient:
             open_browser=False
         )
 
-        auth_url = auth_manager.get_authorize_url()
+        auth_url = self.auth_manager.get_authorize_url()
         webbrowser.open(auth_url)
 
         # Start local server to listen for the callback
@@ -59,8 +80,9 @@ class SpotifyClient:
 
         if code:
             try:
-                token_info = auth_manager.get_access_token(code)
-                self.sp = spotipy.Spotify(auth=token_info['access_token'])
+                self.token_info = self.auth_manager.get_access_token(code)
+                self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
+                self.save_token()
                 logger.info("Spotify authentication successful")
             except Exception as e:
                 logger.error(f"Failed to get access token: {str(e)}")

@@ -80,6 +80,11 @@ def sync_playlist():
     else:
         return jsonify({"error": "Invalid request"}), 400
 
+@app.route('/spotify_auth', methods=['GET'])
+def spotify_auth():
+    sync_manager.spotify.authenticate()
+    return jsonify({"message": "Spotify authentication successful"}), 200
+
 if __name__ == '__main__':
     logger.info("Starting Flask application")
     try:
