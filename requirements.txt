@@ -1,3 +1,4 @@
 spotipy==2.19.0
 tidalapi==0.7.0
 PyYAML==6.0
+flake8==3.9.2
