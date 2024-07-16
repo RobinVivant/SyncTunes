@@ -63,6 +63,7 @@ def refresh_playlists():
     if platform not in ['spotify', 'tidal']:
         return jsonify({"error": "Invalid platform"}), 400
     try:
+        sync_manager = get_sync_manager()
         playlists = sync_manager.refresh_playlists(platform)
         logger.info(f"Successfully refreshed {len(playlists)} {platform} playlists")
         return jsonify(playlists), 200
@@ -74,6 +75,7 @@ def refresh_playlists():
 def sync():
     logger.info("Received sync request")
     data = request.json
+    sync_manager = get_sync_manager()
     if data.get('all'):
         logger.info("Syncing all playlists")
         sync_manager.sync_all_playlists()
@@ -96,6 +98,7 @@ def sync_playlist():
     
     if source_platform and target_platform and playlist_id:
         logger.info(f"Syncing playlist from {source_platform} to {target_platform}")
+        sync_manager = get_sync_manager()
         result = sync_manager.sync_single_playlist(source_platform, target_platform, playlist_id)
         return jsonify(result), 200
     else:
@@ -106,6 +109,7 @@ def sync_playlist():
 def spotify_auth():
     logger.info("Initiating Spotify authentication")
     try:
+        sync_manager = get_sync_manager()
         sync_manager.spotify.authenticate()
         logger.info("Spotify authentication successful")
         return jsonify({"message": "Spotify authentication successful"}), 200

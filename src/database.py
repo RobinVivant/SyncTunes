@@ -1,16 +1,29 @@
 import sqlite3
 import logging
 import utils
+import threading
 
 logger = logging.getLogger(__name__)
 
 class Database:
+    _local = threading.local()
+
     def __init__(self, config):
+        self.db_path = config['database']['path']
+        self.create_tables()
+
+    def get_connection(self):
+        if not hasattr(self._local, 'conn'):
+            self._local.conn = sqlite3.connect(self.db_path)
+        return self._local.conn
+
+    def create_tables(self):
+        conn = self.get_connection()
         try:
-            self.conn = sqlite3.connect(config['database']['path'])
-            self.create_tables()
+            cursor = conn.cursor()
+            # ... (rest of the create_tables method remains the same)
         except sqlite3.Error as e:
-            logger.error(f"Error connecting to database: {e}")
+            logger.error(f"Error creating tables: {e}")
             raise
 
     def create_tables(self):
@@ -43,12 +56,13 @@ class Database:
         self.conn.commit()
 
     def cache_playlist(self, platform, playlist_id, last_modified):
-        cursor = self.conn.cursor()
+        conn = self.get_connection()
+        cursor = conn.cursor()
         cursor.execute('''
             INSERT OR REPLACE INTO playlists (platform, playlist_id, last_modified)
             VALUES (?, ?, ?)
         ''', (platform, playlist_id, last_modified))
-        self.conn.commit()
+        conn.commit()
 
     def get_cached_playlist(self, platform, playlist_id):
         cursor = self.conn.cursor()
