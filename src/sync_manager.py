@@ -21,6 +21,7 @@ class SyncManager:
 
         logger.info("Initializing SpotifyClient")
         self.spotify = SpotifyClient(config, self.db)
+        self.spotify.authenticate()  # Try to load existing token
         logger.info("SpotifyClient initialized")
         
         logger.info("Initializing TidalClient")

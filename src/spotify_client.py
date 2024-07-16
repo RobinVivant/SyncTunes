@@ -20,7 +20,7 @@ class SpotifyClient:
         self.auth_manager = None
         self.token_info = None
 
-    def authenticate(self, auth_code):
+    def authenticate(self, auth_code=None):
         redirect_uri = "http://localhost:5000/callback/spotify"
 
         self.auth_manager = SpotifyOAuth(
@@ -32,12 +32,19 @@ class SpotifyClient:
         )
 
         try:
-            self.token_info = self.auth_manager.get_access_token(auth_code)
-            if not self.token_info:
-                raise AuthenticationError("Failed to get access token")
-            self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
-            self.save_token()
-            logger.info("Spotify authentication successful")
+            if auth_code:
+                self.token_info = self.auth_manager.get_access_token(auth_code)
+                if not self.token_info:
+                    raise AuthenticationError("Failed to get access token")
+                self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
+                self.save_token()
+                logger.info("Spotify authentication successful")
+            else:
+                logger.info("No auth code provided, attempting to use stored token")
+                if not self.load_token():
+                    logger.warning("No valid stored token found")
+                    return False
+            return True
         except Exception as e:
             logger.error(f"Failed to get access token: {str(e)}")
             raise AuthenticationError(f"Failed to get access token: {str(e)}")
