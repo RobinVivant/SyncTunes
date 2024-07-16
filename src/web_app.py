@@ -57,9 +57,9 @@ def get_tidal_playlists():
     logger.info("Fetching Tidal playlists")
     try:
         sync_manager = get_sync_manager()
-        if not sync_manager.tidal.session:
-            logger.info("Tidal client not authenticated, returning cached playlists")
-            playlists = sync_manager.get_cached_playlists('tidal')
+        if not sync_manager.tidal.session or not sync_manager.tidal.session.check_login():
+            logger.info("Tidal client not authenticated, returning empty list")
+            playlists = []
         else:
             playlists = sync_manager.refresh_playlists('tidal')
         logger.info(f"Successfully fetched {len(playlists)} Tidal playlists")
