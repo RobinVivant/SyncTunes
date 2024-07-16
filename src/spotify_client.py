@@ -1,13 +1,16 @@
 import logging
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
-import utils
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 import urllib.parse
 import webbrowser
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+
+import utils
 
 logger = logging.getLogger(__name__)
+
 
 class CallbackHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -16,6 +19,7 @@ class CallbackHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"Authentication successful! You can close this window.")
         self.server.path = self.path
+
 
 class SpotifyClient:
     def __init__(self, config):
@@ -31,7 +35,7 @@ class SpotifyClient:
             scope="playlist-read-private playlist-modify-private",
             open_browser=False
         )
-        
+
         auth_url = auth_manager.get_authorize_url()
         webbrowser.open(auth_url)
 
@@ -41,7 +45,7 @@ class SpotifyClient:
         server_thread.start()
 
         server_thread.join(timeout=60)  # Wait for a maximum of 60 seconds
-        
+
         if server_thread.is_alive():
             server.shutdown()
             raise Exception("Spotify authentication timed out")
