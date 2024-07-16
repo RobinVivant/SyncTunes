@@ -1,7 +1,7 @@
+import datetime
 import logging
 import random
 import time
-import datetime
 from functools import wraps
 
 logging.basicConfig(level=logging.INFO)

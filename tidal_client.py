@@ -1,4 +1,5 @@
 import logging
+
 import tidalapi
 from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
 
