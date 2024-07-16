@@ -21,14 +21,15 @@ class SpotifyClient:
         self.token_info = None
 
     def authenticate(self, auth_code=None):
-        redirect_uri = "http://localhost:5000/callback/spotify"
+        redirect_uri = "http://127.0.0.1:5000/callback/spotify"
 
         self.auth_manager = SpotifyOAuth(
             client_id=self.config['spotify']['client_id'],
             client_secret=self.config['spotify']['client_secret'],
             redirect_uri=redirect_uri,
             scope="playlist-read-private playlist-modify-private",
-            cache_handler=None
+            cache_handler=None,
+            show_dialog=True
         )
 
         try:
@@ -66,13 +67,14 @@ class SpotifyClient:
         return False
 
     def get_auth_url(self):
-        redirect_uri = "http://localhost:5000/callback/spotify"
+        redirect_uri = "http://127.0.0.1:5000/callback/spotify"
         self.auth_manager = SpotifyOAuth(
             client_id=self.config['spotify']['client_id'],
             client_secret=self.config['spotify']['client_secret'],
             redirect_uri=redirect_uri,
             scope="playlist-read-private playlist-modify-private",
-            cache_handler=None
+            cache_handler=None,
+            show_dialog=True
         )
         return self.auth_manager.get_authorize_url()
 
