@@ -134,7 +134,7 @@ def spotify_auth():
 def tidal_auth():
     logger.info("Initiating Tidal authentication")
     sync_manager = get_sync_manager()
-    auth_url = sync_manager.tidal.get_auth_url()
+    auth_url = "http://" + sync_manager.tidal.get_auth_url()
     logger.info(f"Tidal auth URL: {auth_url}")
     return redirect(auth_url)
 
@@ -157,12 +157,12 @@ def tidal_callback():
     logger.info("Tidal callback received")
     code = request.args.get('code')
     logger.info(f"Received Tidal auth code: {code}")
-    
+
     # Log all request details
     logger.info(f"Request method: {request.method}")
     logger.info(f"Request headers: {request.headers}")
     logger.info(f"Request args: {request.args}")
-    
+
     sync_manager = get_sync_manager()
     try:
         result = sync_manager.tidal.login(code)
