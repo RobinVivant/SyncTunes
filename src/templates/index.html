@@ -93,7 +93,7 @@
 <body>
     <h1>Spotify-Tidal Playlist Sync</h1>
     <div class="auth-buttons">
-        <a href="/spotify_auth" class="auth-button spotify" target="_blank">Connect Spotify</a>
+        <a href="/spotify_auth" class="auth-button spotify" id="spotifyAuthButton" target="_blank">Connect Spotify</a>
         <button class="auth-button tidal" id="tidalAuthButton">Connect Tidal</button>
     </div>
     <div class="playlist-container">
@@ -125,6 +125,28 @@
             messageElement.style.color = 'white';
         }
 
+        function updateButtonState(platform, isConnected) {
+            const button = document.getElementById(`${platform}AuthButton`);
+            if (isConnected) {
+                button.textContent = `Disconnect ${platform.charAt(0).toUpperCase() + platform.slice(1)}`;
+                button.classList.add('connected');
+            } else {
+                button.textContent = `Connect ${platform.charAt(0).toUpperCase() + platform.slice(1)}`;
+                button.classList.remove('connected');
+            }
+        }
+
+        function checkConnectionStatus() {
+            axios.get('/connection_status')
+                .then(response => {
+                    updateButtonState('spotify', response.data.spotify);
+                    updateButtonState('tidal', response.data.tidal);
+                })
+                .catch(error => {
+                    console.error('Error checking connection status:', error);
+                });
+        }
+
         function checkTidalAuthStatus() {
             console.log('Checking Tidal auth status...');
             axios.get('/check_tidal_auth')
@@ -154,16 +176,18 @@
             ]).then(([spotifyResponse, tidalResponse]) => {
                 if (spotifyResponse.error && spotifyResponse.error.response && spotifyResponse.error.response.status === 401) {
                     showMessage('Spotify authentication required. Please authenticate.', true);
-                    window.location.href = '/spotify_auth';
+                    updateButtonState('spotify', false);
                 } else if (spotifyResponse.data) {
                     updatePlaylistList('spotifyPlaylists', spotifyResponse.data);
+                    updateButtonState('spotify', true);
                 }
 
                 if (tidalResponse.error && tidalResponse.error.response && tidalResponse.error.response.status === 401) {
                     showMessage('Tidal authentication required. Please authenticate.', true);
-                    window.location.href = '/tidal_auth';
+                    updateButtonState('tidal', false);
                 } else if (tidalResponse.data) {
                     updatePlaylistList('tidalPlaylists', tidalResponse.data);
+                    updateButtonState('tidal', true);
                 }
 
                 if (spotifyResponse.error || tidalResponse.error) {
@@ -260,8 +284,11 @@
             });
         }
 
-        // Load playlists when the page loads
-        window.onload = loadPlaylists;
+        // Load playlists and check connection status when the page loads
+        window.onload = function() {
+            loadPlaylists();
+            checkConnectionStatus();
+        };
 
         // Add event listener for Tidal auth button
         document.getElementById('tidalAuthButton').addEventListener('click', function(event) {
