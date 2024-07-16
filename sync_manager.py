@@ -1,7 +1,10 @@
 import utils
 from database import Database
 from spotify_client import SpotifyClient
-from tidal_client import TidalClient
+from tidal_client import TidalClient, AuthenticationError, PlaylistModificationError
+
+class SyncError(Exception):
+    pass
 
 
 class SyncManager:
@@ -75,5 +78,7 @@ class SyncManager:
             self.db.cache_playlist(source_platform, playlist['id'], utils.get_current_timestamp())
             self.db.cache_playlist(target_platform, target_playlist_id, utils.get_current_timestamp())
 
-        except Exception as e:
+        except (AuthenticationError, PlaylistModificationError) as e:
             print(f"Error syncing playlist {playlist['name']}: {str(e)}")
+        except Exception as e:
+            print(f"Unexpected error syncing playlist {playlist['name']}: {str(e)}")

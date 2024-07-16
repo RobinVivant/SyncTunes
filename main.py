@@ -3,7 +3,8 @@ import signal
 import sys
 
 from config import load_config
-from sync_manager import SyncManager
+from sync_manager import SyncManager, SyncError
+from tidal_client import AuthenticationError, PlaylistModificationError
 
 
 def signal_handler(sig, frame):
@@ -39,8 +40,17 @@ def main():
             sync_manager.sync_specific_playlists(args.playlists)
 
         print("Sync completed successfully.")
+    except AuthenticationError as e:
+        print(f"Authentication error: {str(e)}")
+        sys.exit(1)
+    except PlaylistModificationError as e:
+        print(f"Playlist modification error: {str(e)}")
+        sys.exit(1)
+    except SyncError as e:
+        print(f"Sync error: {str(e)}")
+        sys.exit(1)
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        print(f"An unexpected error occurred: {str(e)}")
         sys.exit(1)
 
 

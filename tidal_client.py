@@ -1,6 +1,12 @@
 import tidalapi
 from tidalapi.exceptions import TidalError
 
+class AuthenticationError(Exception):
+    pass
+
+class PlaylistModificationError(Exception):
+    pass
+
 
 class TidalClient:
     def __init__(self, config):
@@ -11,7 +17,7 @@ class TidalClient:
     def login(self):
         login_success = self.session.login(self.config['tidal']['username'], self.config['tidal']['password'])
         if not login_success:
-            raise Exception("Failed to login to Tidal. Please check your credentials.")
+            raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
 
     def check_session(self):
         if not self.session.check_login():
@@ -46,7 +52,7 @@ class TidalClient:
         try:
             playlist.add(tracks)
         except TidalError as e:
-            raise Exception(f"Failed to add tracks to Tidal playlist: {str(e)}")
+            raise PlaylistModificationError(f"Failed to add tracks to Tidal playlist: {str(e)}")
 
     def remove_tracks_from_playlist(self, playlist_id, track_ids):
         playlist = self.session.playlist(playlist_id)
@@ -54,7 +60,7 @@ class TidalClient:
         try:
             playlist.remove(tracks)
         except TidalError as e:
-            raise Exception(f"Failed to remove tracks from Tidal playlist: {str(e)}")
+            raise PlaylistModificationError(f"Failed to remove tracks from Tidal playlist: {str(e)}")
 
     def get_playlist_by_name(self, name):
         playlists = self.get_playlists()
