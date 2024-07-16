@@ -1,7 +1,10 @@
+import logging
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 import utils
+
+logger = logging.getLogger(__name__)
 
 
 class SpotifyClient:
