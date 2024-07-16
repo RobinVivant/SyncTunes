@@ -89,14 +89,18 @@ class TidalClient:
         return next((p for p in playlists if p['name'] == name), None)
 
     def search_tracks(self, query):
-        results = self.session.search('track', query)
-        if results and results.tracks:
-            track = results.tracks[0]
-            return [{
-                'id': track.id,
-                'name': track.name,
-                'artists': [artist.name for artist in track.artists],
-                'album': track.album.name,
-                'uri': f'tidal:track:{track.id}'
-            }]
-        return []
+        try:
+            results = self.session.search('track', query)
+            if results and hasattr(results, 'tracks') and results.tracks:
+                track = results.tracks[0]
+                return [{
+                    'id': track.id,
+                    'name': track.name,
+                    'artists': [artist.name for artist in track.artists],
+                    'album': track.album.name,
+                    'uri': f'tidal:track:{track.id}'
+                }]
+            return []
+        except Exception as e:
+            logger.error(f"Error searching for tracks: {str(e)}")
+            return []

@@ -45,6 +45,9 @@ def find_matching_track(track, platform_client):
             return search_results[0]
         logger.info(f"No matching track found for: {search_query}")
         return None
+    except KeyError as e:
+        logger.error(f"KeyError in find_matching_track: {str(e)}")
+        return None
     except Exception as e:
         logger.exception(f"Error finding matching track: {str(e)}")
         return None

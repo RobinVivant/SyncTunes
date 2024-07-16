@@ -84,11 +84,13 @@ class SyncManager:
             self.db.cache_playlist(target_platform, target_playlist_id, utils.get_current_timestamp())
 
         except (AuthenticationError, PlaylistModificationError) as e:
-            print(f"Error syncing playlist {playlist['name']}: {str(e)}")
+            logger.error(f"Error syncing playlist {playlist['name']}: {str(e)}")
         except (ValueError, KeyError) as e:
-            print(f"Data error syncing playlist {playlist['name']}: {str(e)}")
+            logger.error(f"Data error syncing playlist {playlist['name']}: {str(e)}")
         except IOError as e:
-            print(f"I/O error syncing playlist {playlist['name']}: {str(e)}")
+            logger.error(f"I/O error syncing playlist {playlist['name']}: {str(e)}")
         except Exception as e:
-            print(f"Unexpected error syncing playlist {playlist['name']}: {str(e)}")
-            logger.exception(f"Unexpected error syncing playlist {playlist['name']}")
+            logger.exception(f"Unexpected error syncing playlist {playlist['name']}: {str(e)}")
+        finally:
+            # Consider adding cleanup or finalization code here if needed
+            pass

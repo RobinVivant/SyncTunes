@@ -4,10 +4,10 @@ import signal
 import sys
 
 from config import load_config
-
-logger = logging.getLogger(__name__)
 from sync_manager import SyncManager, SyncError
 from tidal_client import AuthenticationError, PlaylistModificationError
+
+logger = logging.getLogger(__name__)
 
 
 def signal_handler(sig, frame):
