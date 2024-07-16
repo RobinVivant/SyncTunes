@@ -1,5 +1,8 @@
+import logging
 import tidalapi
 from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
+
+logger = logging.getLogger(__name__)
 
 
 class PlaylistModificationError(Exception):

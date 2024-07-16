@@ -1,7 +1,10 @@
+import logging
 import utils
 from database import Database
 from spotify_client import SpotifyClient
 from tidal_client import TidalClient, AuthenticationError, PlaylistModificationError
+
+logger = logging.getLogger(__name__)
 
 class SyncError(Exception):
     pass
