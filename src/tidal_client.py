@@ -64,18 +64,21 @@ class TidalClient:
         return self.login_future[0].verification_uri_complete
 
     def check_auth_status(self):
-        if not hasattr(self, 'login_future'):
+        if not hasattr(self, 'login_future') or self.login_future is None:
+            logger.error("login_future is not initialized")
             return 'failed'
 
         try:
             # Check if the login_future is properly initialized
-            if not self.login_future or len(self.login_future) < 2:
+            if not isinstance(self.login_future, tuple) or len(self.login_future) < 2:
                 logger.error("login_future is not properly initialized")
                 return 'failed'
 
+            login, future = self.login_future
+
             # Check if the future is done without blocking
-            if self.login_future[1].done():
-                login_result = self.login_future[1].result()
+            if future.done():
+                login_result = future.result()
                 if login_result:
                     self.session = login_result
                     expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
