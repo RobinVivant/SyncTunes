@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, render_template, request, jsonify
 from sync_manager import SyncManager
 from config import load_config
@@ -5,6 +6,8 @@ from config import load_config
 app = Flask(__name__)
 config = load_config()
 sync_manager = SyncManager(config)
+
+logger = logging.getLogger(__name__)
 
 @app.route('/')
 def index():
