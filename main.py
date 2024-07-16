@@ -1,4 +1,5 @@
 import argparse
+import sys
 from sync_manager import SyncManager
 from config import load_config
 
@@ -9,18 +10,26 @@ def main():
     parser.add_argument("--gui", action="store_true", help="Launch GUI (not implemented yet)")
     args = parser.parse_args()
 
-    config = load_config()
-    sync_manager = SyncManager(config)
+    try:
+        config = load_config()
+        sync_manager = SyncManager(config)
 
-    if args.gui:
-        print("GUI not implemented yet. Falling back to CLI.")
+        if args.gui:
+            print("GUI not implemented yet. Falling back to CLI.")
 
-    if args.all:
-        sync_manager.sync_all_playlists()
-    elif args.playlists:
-        sync_manager.sync_specific_playlists(args.playlists)
-    else:
-        print("Please specify --all or --playlists")
+        if args.all:
+            sync_manager.sync_all_playlists()
+        elif args.playlists:
+            sync_manager.sync_specific_playlists(args.playlists)
+        else:
+            print("Please specify --all or --playlists")
+            parser.print_help()
+            sys.exit(1)
+
+        print("Sync completed successfully.")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
