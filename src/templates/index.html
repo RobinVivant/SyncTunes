@@ -190,14 +190,15 @@
                     } else if (response.data.status === 'pending') {
                         showMessage('Waiting for Tidal authentication...', false);
                         setTimeout(checkTidalAuthStatus, 2000);
-                    } else {
+                    } else if (response.data.status === 'failed') {
                         showMessage('Tidal authentication failed. Please try again.', true);
+                    } else {
+                        showMessage('Unknown Tidal authentication status. Please try again.', true);
                     }
                 })
                 .catch(error => {
                     console.error('Error checking Tidal auth status:', error);
                     showMessage('Error checking Tidal authentication status.', true);
-                    setTimeout(checkTidalAuthStatus, 5000);  // Retry after 5 seconds on error
                 });
         }
 

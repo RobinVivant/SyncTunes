@@ -147,8 +147,10 @@ def check_tidal_auth():
         return jsonify({"status": "success"})
     elif auth_status == 'pending':
         return jsonify({"status": "pending"})
-    else:
+    elif auth_status == 'failed':
         return jsonify({"status": "failed"})
+    else:
+        return jsonify({"status": "unknown"})
 
 @app.route('/connection_status', methods=['GET'])
 def connection_status():
