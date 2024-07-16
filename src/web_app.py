@@ -1,5 +1,5 @@
 import logging
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
 from sync_manager import SyncManager
 from config import load_config
 from spotify_client import AuthenticationError as SpotifyAuthenticationError

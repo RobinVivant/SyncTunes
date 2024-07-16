@@ -23,51 +23,42 @@ class TidalClient:
         self.login()
         logger.info("TidalClient initialization completed")
 
-    def login(self):
+    def login(self, auth_code):
         try:
             logger.info("Starting Tidal login process")
-            token, expires_at = self.db.get_token('tidal')
-            if token and expires_at:
-                expires_at = datetime.datetime.fromisoformat(expires_at)
-                if expires_at > datetime.datetime.now():
-                    self.session = tidalapi.Session()
-                    try:
-                        self.session.load_oauth_session(token, expires_at.isoformat())
-                        if self.session.check_login():
-                            logger.info("Tidal token loaded from database")
-                            return
-                        else:
-                            logger.warning("Stored token is invalid. Attempting to re-authenticate.")
-                    except requests.exceptions.HTTPError as e:
-                        logger.warning(f"Stored token failed: {e}. Attempting to re-authenticate.")
-
-            self._perform_oauth_login()
+            self.session = tidalapi.Session()
+            self.session.login_oauth(auth_code)
+            
+            if not self.session.check_login():
+                logger.error("Failed to login to Tidal. Please check your credentials.")
+                raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
+            
+            self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
+            logger.info("Tidal login successful")
+            logger.info("Tidal session logged in successfully")
         except Exception as e:
             logger.exception(f"Tidal authentication failed: {str(e)}")
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
 
-    def _perform_oauth_login(self):
+    def get_auth_url(self):
         self.session = tidalapi.Session()
-        login, future = self.session.login_oauth()
-        logger.info("OAuth login initiated")
+        login, _ = self.session.login_oauth()
+        return login.verification_uri_complete
 
-        print(f"\nPlease visit {login.verification_uri} and enter the code: {login.user_code}")
-        print("Waiting for you to log in...")
-
-        try:
-            future.result(timeout=300)  # Wait for a maximum of 5 minutes
-            logger.info("Login successful")
-        except Exception as e:
-            logger.error(f"Error during login: {str(e)}")
-            raise AuthenticationError(f"Failed to complete Tidal login: {str(e)}")
-
-        if not self.session.check_login():
-            logger.error("Failed to login to Tidal. Please check your credentials.")
-            raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
-        
-        self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
-        logger.info("Tidal login successful")
-        logger.info("Tidal session logged in successfully")
+    def load_token(self):
+        token, expires_at = self.db.get_token('tidal')
+        if token and expires_at:
+            expires_at = datetime.datetime.fromisoformat(expires_at)
+            if expires_at > datetime.datetime.now():
+                self.session = tidalapi.Session()
+                try:
+                    self.session.load_oauth_session(token, expires_at.isoformat())
+                    if self.session.check_login():
+                        logger.info("Tidal token loaded from database")
+                        return True
+                except requests.exceptions.HTTPError as e:
+                    logger.warning(f"Stored token failed: {e}.")
+        return False
 
     def check_session(self):
         if not self.session.check_login():

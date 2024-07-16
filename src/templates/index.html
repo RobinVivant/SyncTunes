@@ -68,10 +68,34 @@
         button:hover {
             background-color: #1ed760;
         }
+        .auth-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .auth-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+        }
+        .auth-button.spotify {
+            background-color: #1DB954;
+        }
+        .auth-button.tidal {
+            background-color: #000000;
+        }
     </style>
 </head>
 <body>
     <h1>Spotify-Tidal Playlist Sync</h1>
+    <div class="auth-buttons">
+        <a href="/spotify_auth" class="auth-button spotify">Connect Spotify</a>
+        <a href="/tidal_auth" class="auth-button tidal">Connect Tidal</a>
+    </div>
     <div class="playlist-container">
         <div class="playlist-list" id="spotifyPlaylists" ondrop="drop(event, 'spotify')" ondragover="allowDrop(event)">
             <h2>Spotify Playlists</h2>
