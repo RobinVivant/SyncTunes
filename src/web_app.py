@@ -114,23 +114,37 @@ def sync_playlist():
 @app.route('/spotify_auth', methods=['GET'])
 def spotify_auth():
     logger.info("Initiating Spotify authentication")
-    try:
-        sync_manager = get_sync_manager()
-        sync_manager.spotify.authenticate()
-        logger.info("Spotify authentication successful")
-        return jsonify({"message": "Spotify authentication successful"}), 200
-    except Exception as e:
-        logger.error(f"Spotify authentication failed: {str(e)}")
-        return jsonify({"error": "Spotify authentication failed"}), 500
+    sync_manager = get_sync_manager()
+    auth_url = sync_manager.spotify.get_auth_url()
+    return redirect(auth_url)
 
 @app.route('/tidal_auth', methods=['GET'])
 def tidal_auth():
     logger.info("Initiating Tidal authentication")
+    sync_manager = get_sync_manager()
+    auth_url = sync_manager.tidal.get_auth_url()
+    return redirect(auth_url)
+
+@app.route('/callback/spotify')
+def spotify_callback():
+    logger.info("Spotify callback received")
+    code = request.args.get('code')
+    sync_manager = get_sync_manager()
     try:
-        sync_manager = get_sync_manager()
-        sync_manager.tidal.login()
-        logger.info("Tidal authentication successful")
-        return jsonify({"message": "Tidal authentication successful"}), 200
+        sync_manager.spotify.authenticate(code)
+        return redirect(url_for('index'))
+    except Exception as e:
+        logger.error(f"Spotify authentication failed: {str(e)}")
+        return jsonify({"error": "Spotify authentication failed"}), 500
+
+@app.route('/callback/tidal')
+def tidal_callback():
+    logger.info("Tidal callback received")
+    code = request.args.get('code')
+    sync_manager = get_sync_manager()
+    try:
+        sync_manager.tidal.login(code)
+        return redirect(url_for('index'))
     except Exception as e:
         logger.error(f"Tidal authentication failed: {str(e)}")
         return jsonify({"error": "Tidal authentication failed"}), 500

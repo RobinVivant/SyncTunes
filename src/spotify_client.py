@@ -1,13 +1,6 @@
 import logging
 import threading
 import urllib.parse
-import webbrowser
-import datetime
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import json
-import os
-import datetime
-
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -18,16 +11,6 @@ logger = logging.getLogger(__name__)
 class AuthenticationError(Exception):
     pass
 
-
-class CallbackHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-        self.wfile.write(b"Authentication successful! You can close this window.")
-        self.server.path = self.path
-
-
 class SpotifyClient:
     def __init__(self, config, database):
         self.config = config
@@ -35,69 +18,53 @@ class SpotifyClient:
         self.sp = None
         self.auth_manager = None
         self.token_info = None
-        self.load_token()
-        if not self.sp:
-            self.authenticate()
 
-    def load_token(self):
-        token, expires_at = self.db.get_token('spotify')
-        if token and expires_at:
-            expires_at = datetime.datetime.fromisoformat(expires_at)
-            if expires_at > datetime.datetime.now():
-                self.token_info = {'access_token': token, 'expires_at': expires_at}
-                self.sp = spotipy.Spotify(auth=token)
-                logger.info("Spotify token loaded from database")
-
-    def save_token(self):
-        expires_at = datetime.datetime.fromtimestamp(self.token_info['expires_at'])
-        self.db.store_token('spotify', self.token_info['access_token'], expires_at.isoformat())
-        logger.info("Spotify token saved to database")
-
-    def authenticate(self):
-        if self.sp:
-            return
-
-        redirect_uri = "http://localhost:8888/callback"
+    def authenticate(self, auth_code):
+        redirect_uri = "http://localhost:5000/callback/spotify"
 
         self.auth_manager = SpotifyOAuth(
             client_id=self.config['spotify']['client_id'],
             client_secret=self.config['spotify']['client_secret'],
             redirect_uri=redirect_uri,
             scope="playlist-read-private playlist-modify-private",
-            open_browser=False
+            cache_handler=None
         )
 
-        auth_url = self.auth_manager.get_authorize_url()
-        webbrowser.open(auth_url)
+        try:
+            self.token_info = self.auth_manager.get_access_token(auth_code)
+            self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
+            self.save_token()
+            logger.info("Spotify authentication successful")
+        except Exception as e:
+            logger.error(f"Failed to get access token: {str(e)}")
+            raise AuthenticationError(f"Failed to get access token: {str(e)}")
 
-        # Start local server to listen for the callback
-        server = HTTPServer(('localhost', 8888), CallbackHandler)
-        server_thread = threading.Thread(target=server.handle_request)
-        server_thread.start()
+    def save_token(self):
+        expires_at = datetime.datetime.fromtimestamp(self.token_info['expires_at'])
+        self.db.store_token('spotify', self.token_info['access_token'], expires_at.isoformat())
+        logger.info("Spotify token saved to database")
 
-        server_thread.join(timeout=60)  # Wait for a maximum of 60 seconds
+    def load_token(self):
+        token, expires_at = self.db.get_token('spotify')
+        if token and expires_at:
+            expires_at = datetime.datetime.fromisoformat(expires_at)
+            if expires_at > datetime.datetime.now():
+                self.token_info = {'access_token': token, 'expires_at': expires_at.timestamp()}
+                self.sp = spotipy.Spotify(auth=token)
+                logger.info("Spotify token loaded from database")
+                return True
+        return False
 
-        if server_thread.is_alive():
-            server.shutdown()
-            raise Exception("Spotify authentication timed out")
-
-        # Parse the callback URL
-        parsed_url = urllib.parse.urlparse(server.path)
-        query_params = urllib.parse.parse_qs(parsed_url.query)
-        code = query_params.get('code', [None])[0]
-
-        if code:
-            try:
-                self.token_info = self.auth_manager.get_access_token(code)
-                self.sp = spotipy.Spotify(auth=self.token_info['access_token'])
-                self.save_token()
-                logger.info("Spotify authentication successful")
-            except Exception as e:
-                logger.error(f"Failed to get access token: {str(e)}")
-                raise Exception(f"Failed to get access token: {str(e)}")
-        else:
-            logger.error("Failed to get authorization code")
-            raise Exception("Failed to get authorization code")
+    def get_auth_url(self):
+        redirect_uri = "http://localhost:5000/callback/spotify"
+        self.auth_manager = SpotifyOAuth(
+            client_id=self.config['spotify']['client_id'],
+            client_secret=self.config['spotify']['client_secret'],
+            redirect_uri=redirect_uri,
+            scope="playlist-read-private playlist-modify-private",
+            cache_handler=None
+        )
+        return self.auth_manager.get_authorize_url()
 
     @utils.retry_with_backoff()
     def get_playlists(self):
