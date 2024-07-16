@@ -31,7 +31,8 @@ class TidalClient:
 
             if auth_code:
                 logger.info("Auth code provided, completing OAuth flow")
-                login, future = self.session.login_oauth(auth_code)
+                login_future = self.session.login_oauth()
+                login, future = login_future
                 logger.info(f"OAuth login result: {login}")
                 logger.info(f"OAuth future result: {future}")
                 
