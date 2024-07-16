@@ -79,6 +79,12 @@ class SpotifyClient:
         )
         return self.auth_manager.get_authorize_url()
 
+    def disconnect(self):
+        self.sp = None
+        self.auth_manager = None
+        self.token_info = None
+        logger.info("Spotify client disconnected")
+
     @utils.retry_with_backoff()
     def get_playlists(self):
         if not self.sp:
