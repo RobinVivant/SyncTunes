@@ -1,15 +1,20 @@
 import logging
-import logging
 from flask import Flask, render_template, request, jsonify, send_from_directory
 from sync_manager import SyncManager
 from config import load_config
 
-app = Flask(__name__, static_folder='static')
-config = load_config()
-sync_manager = SyncManager(config)
-
+# Set up logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+
+logger.info("Initializing Flask app")
+app = Flask(__name__, static_folder='static')
+
+logger.info("Loading configuration")
+config = load_config()
+
+logger.info("Initializing SyncManager")
+sync_manager = SyncManager(config)
 
 @app.route('/')
 def index():
@@ -20,30 +25,6 @@ def index():
 def send_static(path):
     logger.info(f"Serving static file: {path}")
     return send_from_directory('static', path)
-
-@app.route('/spotify_playlists', methods=['GET'])
-def get_spotify_playlists():
-    logger.info("Fetching Spotify playlists")
-    playlists = sync_manager.spotify.get_playlists()
-    return jsonify(playlists), 200
-
-@app.route('/tidal_playlists', methods=['GET'])
-def get_tidal_playlists():
-    logger.info("Fetching Tidal playlists")
-    playlists = sync_manager.tidal.get_playlists()
-    return jsonify(playlists), 200
-
-@app.route('/sync', methods=['POST'])
-def sync():
-    data = request.json
-    if data.get('all'):
-        sync_manager.sync_all_playlists()
-        return jsonify({"message": "All playlists synced successfully"}), 200
-    elif data.get('playlists'):
-        sync_manager.sync_specific_playlists(data['playlists'])
-        return jsonify({"message": "Specified playlists synced successfully"}), 200
-    else:
-        return jsonify({"error": "Invalid request"}), 400
 
 @app.route('/spotify_playlists', methods=['GET'])
 def get_spotify_playlists():
@@ -67,23 +48,48 @@ def get_tidal_playlists():
         logger.error(f"Error fetching Tidal playlists: {str(e)}")
         return jsonify({"error": "Failed to fetch Tidal playlists"}), 500
 
+@app.route('/sync', methods=['POST'])
+def sync():
+    logger.info("Received sync request")
+    data = request.json
+    if data.get('all'):
+        logger.info("Syncing all playlists")
+        sync_manager.sync_all_playlists()
+        return jsonify({"message": "All playlists synced successfully"}), 200
+    elif data.get('playlists'):
+        logger.info(f"Syncing specific playlists: {data['playlists']}")
+        sync_manager.sync_specific_playlists(data['playlists'])
+        return jsonify({"message": "Specified playlists synced successfully"}), 200
+    else:
+        logger.warning("Invalid sync request")
+        return jsonify({"error": "Invalid request"}), 400
+
 @app.route('/sync_playlist', methods=['POST'])
 def sync_playlist():
+    logger.info("Received single playlist sync request")
     data = request.json
     source_platform = data.get('source_platform')
     target_platform = data.get('target_platform')
     playlist_id = data.get('playlist_id')
     
     if source_platform and target_platform and playlist_id:
+        logger.info(f"Syncing playlist from {source_platform} to {target_platform}")
         result = sync_manager.sync_single_playlist(source_platform, target_platform, playlist_id)
         return jsonify(result), 200
     else:
+        logger.warning("Invalid single playlist sync request")
         return jsonify({"error": "Invalid request"}), 400
 
 @app.route('/spotify_auth', methods=['GET'])
 def spotify_auth():
-    sync_manager.spotify.authenticate()
-    return jsonify({"message": "Spotify authentication successful"}), 200
+    logger.info("Initiating Spotify authentication")
+    try:
+        sync_manager.spotify.authenticate()
+        logger.info("Spotify authentication successful")
+        return jsonify({"message": "Spotify authentication successful"}), 200
+    except Exception as e:
+        logger.error(f"Spotify authentication failed: {str(e)}")
+        return jsonify({"error": "Spotify authentication failed"}), 500
 
 if __name__ == '__main__':
     logger.info("Starting Flask application")
