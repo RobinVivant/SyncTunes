@@ -37,13 +37,13 @@ class SpotifyClient:
             for item in results['items']:
                 if item['track']:
                     track = item['track']
-                tracks.append({
-                    'id': track['id'],
-                    'name': track['name'],
-                    'artists': [artist['name'] for artist in track['artists']],
-                    'album': track['album']['name'],
-                    'uri': track['uri']
-                })
+                    tracks.append({
+                        'id': track['id'],
+                        'name': track['name'],
+                        'artists': [artist['name'] for artist in track['artists']],
+                        'album': track['album']['name'],
+                        'uri': track['uri']
+                    })
             if results['next']:
                 results = self.sp.next(results)
             else:
