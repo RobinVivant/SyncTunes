@@ -19,6 +19,7 @@ class TidalClient:
         self.config = config
         self.db = database
         self.session = None
+        self.login_future = None
         logger.info("Config loaded")
         self.login()
         logger.info("TidalClient initialization completed")
