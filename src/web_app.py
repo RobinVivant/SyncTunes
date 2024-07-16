@@ -88,6 +88,8 @@ def spotify_auth():
 if __name__ == '__main__':
     logger.info("Starting Flask application")
     try:
+        logger.info("About to start Flask app...")
         app.run(debug=True, use_reloader=False, host='localhost', port=5000)
+        logger.info("Flask app has finished running.")
     except Exception as e:
         logger.error(f"Failed to start Flask application: {str(e)}")
