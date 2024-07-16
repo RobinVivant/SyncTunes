@@ -1,7 +1,6 @@
-import logging
-import threading
-import urllib.parse
 import datetime
+import logging
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -9,8 +8,10 @@ import utils
 
 logger = logging.getLogger(__name__)
 
+
 class AuthenticationError(Exception):
     pass
+
 
 class SpotifyClient:
     def __init__(self, config, database):
@@ -21,7 +22,7 @@ class SpotifyClient:
         self.token_info = None
 
     def authenticate(self, auth_code=None):
-        redirect_uri = "http://127.0.0.1:8888/callback/spotify"
+        redirect_uri = "http://localhost:8888/callback/spotify"
 
         self.auth_manager = SpotifyOAuth(
             client_id=self.config['spotify']['client_id'],
@@ -67,7 +68,7 @@ class SpotifyClient:
         return False
 
     def get_auth_url(self):
-        redirect_uri = "http://127.0.0.1:8888/callback/spotify"
+        redirect_uri = "http://localhost:8888/callback/spotify"
         self.auth_manager = SpotifyOAuth(
             client_id=self.config['spotify']['client_id'],
             client_secret=self.config['spotify']['client_secret'],
