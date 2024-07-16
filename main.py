@@ -1,8 +1,17 @@
 import argparse
+import signal
 import sys
 
 from config import load_config
 from sync_manager import SyncManager
+
+
+def signal_handler(sig, frame):
+    print('\nExiting gracefully...')
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 def main():

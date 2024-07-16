@@ -5,10 +5,17 @@ from tidalapi.exceptions import TidalError
 class TidalClient:
     def __init__(self, config):
         self.session = tidalapi.Session()
-        # Note: Tidal doesn't support OIDC, so we'll need to use login credentials
-        login_success = self.session.login(config['tidal']['username'], config['tidal']['password'])
+        self.config = config
+        self.login()
+
+    def login(self):
+        login_success = self.session.login(self.config['tidal']['username'], self.config['tidal']['password'])
         if not login_success:
             raise Exception("Failed to login to Tidal. Please check your credentials.")
+
+    def check_session(self):
+        if not self.session.check_login():
+            self.login()
 
     def get_playlists(self):
         playlists = self.session.user.playlists()
