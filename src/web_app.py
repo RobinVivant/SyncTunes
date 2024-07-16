@@ -1,18 +1,25 @@
 import logging
-from flask import Flask, render_template, request, jsonify
+import logging
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from sync_manager import SyncManager
 from config import load_config
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 config = load_config()
 sync_manager = SyncManager(config)
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 @app.route('/')
 def index():
     logger.info("Rendering index page")
     return render_template('index.html')
+
+@app.route('/static/<path:path>')
+def send_static(path):
+    logger.info(f"Serving static file: {path}")
+    return send_from_directory('static', path)
 
 @app.route('/spotify_playlists', methods=['GET'])
 def get_spotify_playlists():
@@ -76,6 +83,6 @@ def sync_playlist():
 if __name__ == '__main__':
     logger.info("Starting Flask application")
     try:
-        app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
+        app.run(debug=True, use_reloader=False, host='localhost', port=5000)
     except Exception as e:
         logger.error(f"Failed to start Flask application: {str(e)}")
