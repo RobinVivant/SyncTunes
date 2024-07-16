@@ -6,21 +6,51 @@
     <title>Spotify-Tidal Playlist Sync</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
         .playlist-container {
             display: flex;
             justify-content: space-around;
+            margin-top: 20px;
         }
         .playlist-list {
             width: 45%;
             border: 1px solid #ccc;
             min-height: 300px;
             padding: 10px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .playlist-item {
             cursor: move;
-            padding: 5px;
+            padding: 10px;
             margin: 5px 0;
             background-color: #f0f0f0;
+            border-radius: 3px;
+            transition: background-color 0.3s;
+        }
+        .playlist-item:hover {
+            background-color: #e0e0e0;
+        }
+        #message {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 3px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -35,32 +65,47 @@
         </div>
     </div>
     <p id="message"></p>
+    <div class="loading">Loading...</div>
 
     <script>
-        function loadPlaylists() {
-            axios.get('/spotify_playlists')
-                .then(response => {
-                    const spotifyList = document.getElementById('spotifyPlaylists');
-                    response.data.forEach(playlist => {
-                        const div = createPlaylistItem(playlist, 'spotify');
-                        spotifyList.appendChild(div);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading Spotify playlists:', error);
-                });
+        function showLoading() {
+            document.querySelector('.loading').style.display = 'block';
+        }
 
-            axios.get('/tidal_playlists')
-                .then(response => {
-                    const tidalList = document.getElementById('tidalPlaylists');
-                    response.data.forEach(playlist => {
-                        const div = createPlaylistItem(playlist, 'tidal');
-                        tidalList.appendChild(div);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading Tidal playlists:', error);
+        function hideLoading() {
+            document.querySelector('.loading').style.display = 'none';
+        }
+
+        function showMessage(message, isError = false) {
+            const messageElement = document.getElementById('message');
+            messageElement.innerText = message;
+            messageElement.style.backgroundColor = isError ? '#ffcccc' : '#ccffcc';
+        }
+
+        function loadPlaylists() {
+            showLoading();
+            Promise.all([
+                axios.get('/spotify_playlists'),
+                axios.get('/tidal_playlists')
+            ]).then(([spotifyResponse, tidalResponse]) => {
+                const spotifyList = document.getElementById('spotifyPlaylists');
+                const tidalList = document.getElementById('tidalPlaylists');
+                
+                spotifyResponse.data.forEach(playlist => {
+                    const div = createPlaylistItem(playlist, 'spotify');
+                    spotifyList.appendChild(div);
                 });
+                
+                tidalResponse.data.forEach(playlist => {
+                    const div = createPlaylistItem(playlist, 'tidal');
+                    tidalList.appendChild(div);
+                });
+            }).catch(error => {
+                console.error('Error loading playlists:', error);
+                showMessage('Error loading playlists. Please try again.', true);
+            }).finally(() => {
+                hideLoading();
+            });
         }
 
         function createPlaylistItem(playlist, platform) {
@@ -68,6 +113,7 @@
             div.className = 'playlist-item';
             div.draggable = true;
             div.textContent = playlist.name;
+            div.id = `${platform}-${playlist.id}`;
             div.setAttribute('data-id', playlist.id);
             div.setAttribute('data-platform', platform);
             div.ondragstart = drag;
@@ -90,21 +136,29 @@
             const playlistId = draggedElement.getAttribute('data-id');
 
             if (sourcePlatform !== targetPlatform) {
-                syncPlaylist(sourcePlatform, targetPlatform, playlistId);
+                if (confirm(`Are you sure you want to sync "${draggedElement.textContent}" from ${sourcePlatform} to ${targetPlatform}?`)) {
+                    syncPlaylist(sourcePlatform, targetPlatform, playlistId);
+                }
             }
         }
 
         function syncPlaylist(sourcePlatform, targetPlatform, playlistId) {
+            showLoading();
+            showMessage('Syncing playlist...');
             axios.post('/sync_playlist', {
                 source_platform: sourcePlatform,
                 target_platform: targetPlatform,
                 playlist_id: playlistId
             })
             .then(response => {
-                document.getElementById('message').innerText = response.data.message;
+                showMessage(response.data.message);
             })
             .catch(error => {
-                document.getElementById('message').innerText = 'Error: ' + error.response.data.error;
+                console.error('Error syncing playlist:', error);
+                showMessage('Error: ' + (error.response?.data?.error || 'An unexpected error occurred'), true);
+            })
+            .finally(() => {
+                hideLoading();
             });
         }
 
