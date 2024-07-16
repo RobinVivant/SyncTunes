@@ -150,6 +150,15 @@ def check_tidal_auth():
     else:
         return jsonify({"status": "failed"})
 
+@app.route('/connection_status', methods=['GET'])
+def connection_status():
+    sync_manager = get_sync_manager()
+    spotify_connected = sync_manager.spotify.sp is not None
+    tidal_connected = sync_manager.tidal.session is not None and sync_manager.tidal.session.check_login()
+    return jsonify({
+        "spotify": spotify_connected,
+        "tidal": tidal_connected
+    })
 
 @app.route('/callback/spotify')
 def spotify_callback():
