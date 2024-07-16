@@ -1,11 +1,14 @@
 import tidalapi
+from tidalapi.exceptions import TidalError
 
 
 class TidalClient:
     def __init__(self, config):
         self.session = tidalapi.Session()
         # Note: Tidal doesn't support OIDC, so we'll need to use login credentials
-        self.session.login(config['tidal']['username'], config['tidal']['password'])
+        login_success = self.session.login(config['tidal']['username'], config['tidal']['password'])
+        if not login_success:
+            raise Exception("Failed to login to Tidal. Please check your credentials.")
 
     def get_playlists(self):
         playlists = self.session.user.playlists()
@@ -33,9 +36,15 @@ class TidalClient:
     def add_tracks_to_playlist(self, playlist_id, track_ids):
         playlist = self.session.playlist(playlist_id)
         tracks = [self.session.track(track_id) for track_id in track_ids]
-        playlist.add(tracks)
+        try:
+            playlist.add(tracks)
+        except TidalError as e:
+            raise Exception(f"Failed to add tracks to Tidal playlist: {str(e)}")
 
     def remove_tracks_from_playlist(self, playlist_id, track_ids):
         playlist = self.session.playlist(playlist_id)
         tracks = [self.session.track(track_id) for track_id in track_ids]
-        playlist.remove(tracks)
+        try:
+            playlist.remove(tracks)
+        except TidalError as e:
+            raise Exception(f"Failed to remove tracks from Tidal playlist: {str(e)}")
