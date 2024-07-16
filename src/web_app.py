@@ -40,13 +40,25 @@ def sync():
 
 @app.route('/spotify_playlists', methods=['GET'])
 def get_spotify_playlists():
-    playlists = sync_manager.spotify.get_playlists()
-    return jsonify(playlists), 200
+    logger.info("Fetching Spotify playlists")
+    try:
+        playlists = sync_manager.spotify.get_playlists()
+        logger.info(f"Successfully fetched {len(playlists)} Spotify playlists")
+        return jsonify(playlists), 200
+    except Exception as e:
+        logger.error(f"Error fetching Spotify playlists: {str(e)}")
+        return jsonify({"error": "Failed to fetch Spotify playlists"}), 500
 
 @app.route('/tidal_playlists', methods=['GET'])
 def get_tidal_playlists():
-    playlists = sync_manager.tidal.get_playlists()
-    return jsonify(playlists), 200
+    logger.info("Fetching Tidal playlists")
+    try:
+        playlists = sync_manager.tidal.get_playlists()
+        logger.info(f"Successfully fetched {len(playlists)} Tidal playlists")
+        return jsonify(playlists), 200
+    except Exception as e:
+        logger.error(f"Error fetching Tidal playlists: {str(e)}")
+        return jsonify({"error": "Failed to fetch Tidal playlists"}), 500
 
 @app.route('/sync_playlist', methods=['POST'])
 def sync_playlist():
@@ -63,4 +75,7 @@ def sync_playlist():
 
 if __name__ == '__main__':
     logger.info("Starting Flask application")
-    app.run(debug=True, use_reloader=True, host='0.0.0.0', port=5000)
+    try:
+        app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
+    except Exception as e:
+        logger.error(f"Failed to start Flask application: {str(e)}")

@@ -44,7 +44,11 @@ def main():
         if args.gui:
             print("Launching web GUI...")
             logger.info("Starting Flask application from main.py")
-            app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
+            try:
+                app.run(debug=True, use_reloader=False, host='0.0.0.0', port=5000)
+            except Exception as e:
+                logger.error(f"Failed to start Flask application: {str(e)}")
+                sys.exit(1)
             return
 
         if not args.all and not args.playlists:
