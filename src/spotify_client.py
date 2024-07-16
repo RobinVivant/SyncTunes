@@ -61,9 +61,12 @@ class SpotifyClient:
             try:
                 token_info = auth_manager.get_access_token(code)
                 self.sp = spotipy.Spotify(auth=token_info['access_token'])
+                logger.info("Spotify authentication successful")
             except Exception as e:
+                logger.error(f"Failed to get access token: {str(e)}")
                 raise Exception(f"Failed to get access token: {str(e)}")
         else:
+            logger.error("Failed to get authorization code")
             raise Exception("Failed to get authorization code")
 
     @utils.retry_with_backoff()
