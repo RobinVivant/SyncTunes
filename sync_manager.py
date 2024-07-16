@@ -40,8 +40,22 @@ class SyncManager:
             # Get source playlist tracks
             source_tracks = source_client.get_playlist_tracks(playlist['id'])
 
-        # Check if playlist exists on target platform
-        target_playlist = next((p for p in target_client.get_playlists() if p['name'] == playlist['name']), None)
+            # Check if playlist exists on target platform
+            target_playlist = next((p for p in target_client.get_playlists() if p['name'] == playlist['name']), None)
+
+            if target_playlist is None:
+                # Create playlist on target platform if it doesn't exist
+                target_playlist_id = target_client.create_playlist(playlist['name'])
+            else:
+                target_playlist_id = target_playlist['id']
+
+            # Get target playlist tracks
+            target_tracks = target_client.get_playlist_tracks(target_playlist_id)
+
+            # Rest of the sync logic...
+
+        except Exception as e:
+            print(f"Error syncing playlist {playlist['name']}: {str(e)}")
 
         if target_playlist is None:
             # Create playlist on target platform if it doesn't exist
