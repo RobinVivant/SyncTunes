@@ -1,8 +1,7 @@
-import logging
-import time
 import datetime
-import requests
+import logging
 
+import requests
 import tidalapi
 from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
 
@@ -27,14 +26,14 @@ class TidalClient:
         try:
             logger.info("Starting Tidal login process")
             self.session = tidalapi.Session()
-            
+
             if auth_code:
                 login_result = self.session.login_oauth(auth_code)
-                
+
                 if not login_result or not self.session.check_login():
                     logger.error("Failed to login to Tidal. Please check your credentials.")
                     raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
-                
+
                 self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
                 logger.info("Tidal login successful")
             else:
@@ -42,7 +41,7 @@ class TidalClient:
                 if not self.load_token():
                     logger.warning("No valid stored token found")
                     return False
-            
+
             return True
         except tidalapi.exceptions.AuthenticationError as e:
             logger.error(f"Tidal authentication failed: {str(e)}")
