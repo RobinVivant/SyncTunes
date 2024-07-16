@@ -68,15 +68,20 @@ class TidalClient:
             return 'failed'
 
         try:
-            login_result = self.login_future[1].result(timeout=0.1)
-            if login_result:
-                self.session = login_result
-                expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
-                self.db.store_token('tidal', self.session.access_token, expiry_time_str)
-                logger.info("Tidal login successful")
-                return 'success'
-        except concurrent.futures.TimeoutError:
-            return 'pending'
+            # Check if the future is done without blocking
+            if self.login_future[1].done():
+                login_result = self.login_future[1].result()
+                if login_result:
+                    self.session = login_result
+                    expiry_time_str = self.session.expiry_time.isoformat() if self.session.expiry_time else None
+                    self.db.store_token('tidal', self.session.access_token, expiry_time_str)
+                    logger.info("Tidal login successful")
+                    return 'success'
+                else:
+                    logger.error("Tidal login failed")
+                    return 'failed'
+            else:
+                return 'pending'
         except Exception as e:
             logger.error(f"Error checking Tidal auth status: {str(e)}")
             return 'failed'
