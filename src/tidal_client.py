@@ -23,18 +23,27 @@ class TidalClient:
         self.login()
         logger.info("TidalClient initialization completed")
 
-    def login(self, auth_code):
+    def login(self, auth_code=None):
         try:
             logger.info("Starting Tidal login process")
             self.session = tidalapi.Session()
-            login_result = self.session.login_oauth(auth_code)
             
-            if not login_result or not self.session.check_login():
-                logger.error("Failed to login to Tidal. Please check your credentials.")
-                raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
+            if auth_code:
+                login_result = self.session.login_oauth(auth_code)
+                
+                if not login_result or not self.session.check_login():
+                    logger.error("Failed to login to Tidal. Please check your credentials.")
+                    raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
+                
+                self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
+                logger.info("Tidal login successful")
+            else:
+                logger.info("No auth code provided, attempting to use stored token")
+                if not self.load_token():
+                    logger.warning("No valid stored token found")
+                    return False
             
-            self.db.store_token('tidal', self.session.access_token, self.session.expiry_time.isoformat())
-            logger.info("Tidal login successful")
+            return True
         except tidalapi.exceptions.AuthenticationError as e:
             logger.error(f"Tidal authentication failed: {str(e)}")
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")

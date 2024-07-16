@@ -25,6 +25,7 @@ class SyncManager:
         
         logger.info("Initializing TidalClient")
         self.tidal = TidalClient(config, self.db)
+        self.tidal.load_token()  # Try to load existing token
         logger.info("TidalClient initialized")
 
     def sync_all_playlists(self):
