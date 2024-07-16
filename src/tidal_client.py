@@ -1,6 +1,7 @@
 import logging
 import time
 import datetime
+import requests
 
 import tidalapi
 from tidalapi.exceptions import AuthenticationError, TooManyRequests, ObjectNotFound
@@ -30,9 +31,12 @@ class TidalClient:
                 expires_at = datetime.datetime.fromisoformat(expires_at)
                 if expires_at > datetime.datetime.now():
                     self.session = tidalapi.Session()
-                    self.session.load_oauth_session(token, expires_at.isoformat())
-                    logger.info("Tidal token loaded from database")
-                    return
+                    try:
+                        self.session.load_oauth_session(token, expires_at.isoformat())
+                        logger.info("Tidal token loaded from database")
+                        return
+                    except requests.exceptions.HTTPError as e:
+                        logger.warning(f"Stored token failed: {e}. Attempting to re-authenticate.")
 
             self.session = tidalapi.Session()
             login, future = self.session.login_oauth()
