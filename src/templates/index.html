@@ -59,9 +59,11 @@
     <div class="playlist-container">
         <div class="playlist-list" id="spotifyPlaylists" ondrop="drop(event, 'spotify')" ondragover="allowDrop(event)">
             <h2>Spotify Playlists</h2>
+            <button onclick="refreshPlaylists('spotify')">Refresh Spotify Playlists</button>
         </div>
         <div class="playlist-list" id="tidalPlaylists" ondrop="drop(event, 'tidal')" ondragover="allowDrop(event)">
             <h2>Tidal Playlists</h2>
+            <button onclick="refreshPlaylists('tidal')">Refresh Tidal Playlists</button>
         </div>
     </div>
     <p id="message"></p>
@@ -88,24 +90,41 @@
                 axios.get('/spotify_playlists'),
                 axios.get('/tidal_playlists')
             ]).then(([spotifyResponse, tidalResponse]) => {
-                const spotifyList = document.getElementById('spotifyPlaylists');
-                const tidalList = document.getElementById('tidalPlaylists');
-                
-                spotifyResponse.data.forEach(playlist => {
-                    const div = createPlaylistItem(playlist, 'spotify');
-                    spotifyList.appendChild(div);
-                });
-                
-                tidalResponse.data.forEach(playlist => {
-                    const div = createPlaylistItem(playlist, 'tidal');
-                    tidalList.appendChild(div);
-                });
+                updatePlaylistList('spotifyPlaylists', spotifyResponse.data);
+                updatePlaylistList('tidalPlaylists', tidalResponse.data);
             }).catch(error => {
                 console.error('Error loading playlists:', error);
                 showMessage('Error loading playlists. Please try again.', true);
             }).finally(() => {
                 hideLoading();
             });
+        }
+
+        function updatePlaylistList(listId, playlists) {
+            const list = document.getElementById(listId);
+            const platform = listId === 'spotifyPlaylists' ? 'spotify' : 'tidal';
+            list.innerHTML = `<h2>${platform.charAt(0).toUpperCase() + platform.slice(1)} Playlists</h2>
+                              <button onclick="refreshPlaylists('${platform}')">Refresh ${platform.charAt(0).toUpperCase() + platform.slice(1)} Playlists</button>`;
+            playlists.forEach(playlist => {
+                const div = createPlaylistItem(playlist, platform);
+                list.appendChild(div);
+            });
+        }
+
+        function refreshPlaylists(platform) {
+            showLoading();
+            axios.post('/refresh_playlists', { platform: platform })
+                .then(response => {
+                    updatePlaylistList(platform + 'Playlists', response.data);
+                    showMessage(`${platform.charAt(0).toUpperCase() + platform.slice(1)} playlists refreshed successfully.`);
+                })
+                .catch(error => {
+                    console.error('Error refreshing playlists:', error);
+                    showMessage(`Error refreshing ${platform} playlists. Please try again.`, true);
+                })
+                .finally(() => {
+                    hideLoading();
+                });
         }
 
         function createPlaylistItem(playlist, platform) {

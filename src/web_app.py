@@ -35,12 +35,9 @@ def send_static(path):
 def get_spotify_playlists():
     logger.info("Fetching Spotify playlists")
     try:
-        playlists = sync_manager.spotify.get_playlists()
-        logger.info(f"Successfully fetched {len(playlists)} Spotify playlists")
+        playlists = sync_manager.get_cached_playlists('spotify')
+        logger.info(f"Successfully fetched {len(playlists)} Spotify playlists from cache")
         return jsonify(playlists), 200
-    except AuthenticationError as e:
-        logger.error(f"Spotify authentication error: {str(e)}")
-        return jsonify({"error": "Spotify authentication failed. Please check your credentials."}), 401
     except Exception as e:
         logger.error(f"Error fetching Spotify playlists: {str(e)}")
         return jsonify({"error": "Failed to fetch Spotify playlists"}), 500
@@ -49,12 +46,27 @@ def get_spotify_playlists():
 def get_tidal_playlists():
     logger.info("Fetching Tidal playlists")
     try:
-        playlists = sync_manager.tidal.get_playlists()
-        logger.info(f"Successfully fetched {len(playlists)} Tidal playlists")
+        playlists = sync_manager.get_cached_playlists('tidal')
+        logger.info(f"Successfully fetched {len(playlists)} Tidal playlists from cache")
         return jsonify(playlists), 200
     except Exception as e:
         logger.error(f"Error fetching Tidal playlists: {str(e)}")
         return jsonify({"error": "Failed to fetch Tidal playlists"}), 500
+
+@app.route('/refresh_playlists', methods=['POST'])
+def refresh_playlists():
+    logger.info("Refreshing playlists")
+    data = request.json
+    platform = data.get('platform')
+    if platform not in ['spotify', 'tidal']:
+        return jsonify({"error": "Invalid platform"}), 400
+    try:
+        playlists = sync_manager.refresh_playlists(platform)
+        logger.info(f"Successfully refreshed {len(playlists)} {platform} playlists")
+        return jsonify(playlists), 200
+    except Exception as e:
+        logger.error(f"Error refreshing {platform} playlists: {str(e)}")
+        return jsonify({"error": f"Failed to refresh {platform} playlists"}), 500
 
 @app.route('/sync', methods=['POST'])
 def sync():

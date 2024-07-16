@@ -15,24 +15,41 @@ class SyncError(Exception):
 
 class SyncManager:
     def __init__(self, config):
-        logger.info("Initializing SpotifyClient")
-        self.spotify = SpotifyClient(config)
-        logger.info("SpotifyClient initialized")
-        
-        logger.info("Initializing TidalClient")
-        self.tidal = TidalClient(config)
-        logger.info("TidalClient initialized")
-        
         logger.info("Initializing Database")
         self.db = Database(config)
         logger.info("Database initialized")
+
+        logger.info("Initializing SpotifyClient")
+        self.spotify = SpotifyClient(config, self.db)
+        logger.info("SpotifyClient initialized")
+        
+        logger.info("Initializing TidalClient")
+        self.tidal = TidalClient(config, self.db)
+        logger.info("TidalClient initialized")
 
     def sync_all_playlists(self):
         spotify_playlists = self.spotify.get_playlists()
         tidal_playlists = self.tidal.get_playlists()
 
+        self.db.cache_playlists('spotify', spotify_playlists)
+        self.db.cache_playlists('tidal', tidal_playlists)
+
         for playlist in spotify_playlists + tidal_playlists:
             self.sync_playlist(playlist)
+
+    def get_cached_playlists(self, platform):
+        return self.db.get_cached_playlists(platform)
+
+    def refresh_playlists(self, platform):
+        if platform == 'spotify':
+            playlists = self.spotify.get_playlists()
+        elif platform == 'tidal':
+            playlists = self.tidal.get_playlists()
+        else:
+            raise ValueError(f"Invalid platform: {platform}")
+
+        self.db.cache_playlists(platform, playlists)
+        return playlists
 
     def sync_specific_playlists(self, playlist_names):
         for name in playlist_names:
