@@ -30,6 +30,8 @@ class SpotifyClient:
         self.auth_manager = None
         self.token_info = None
         self.load_token()
+        if not self.sp:
+            self.authenticate()
 
     def load_token(self):
         token_path = 'spotify_token.json'
@@ -93,19 +95,25 @@ class SpotifyClient:
 
     @utils.retry_with_backoff()
     def get_playlists(self):
+        if not self.sp:
+            self.authenticate()
         playlists = []
-        results = self.sp.current_user_playlists()
-        while results:
-            for item in results['items']:
-                playlists.append({
-                    'id': item['id'],
-                    'name': item['name'],
-                    'tracks': item['tracks']['total']
-                })
-            if results['next']:
-                results = self.sp.next(results)
-            else:
-                results = None
+        try:
+            results = self.sp.current_user_playlists()
+            while results:
+                for item in results['items']:
+                    playlists.append({
+                        'id': item['id'],
+                        'name': item['name'],
+                        'tracks': item['tracks']['total']
+                    })
+                if results['next']:
+                    results = self.sp.next(results)
+                else:
+                    results = None
+        except Exception as e:
+            logger.error(f"Error fetching Spotify playlists: {str(e)}")
+            raise
         return playlists
 
     def get_playlist_tracks(self, playlist_id):
