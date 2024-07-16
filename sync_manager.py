@@ -30,14 +30,15 @@ class SyncManager:
                 utils.log_warning(f"Playlist '{name}' not found on either platform")
 
     def sync_playlist(self, playlist):
-        source_platform = 'spotify' if isinstance(playlist, dict) else 'tidal'
-        target_platform = 'tidal' if source_platform == 'spotify' else 'spotify'
+        try:
+            source_platform = 'spotify' if isinstance(playlist, dict) else 'tidal'
+            target_platform = 'tidal' if source_platform == 'spotify' else 'spotify'
 
-        source_client = self.spotify if source_platform == 'spotify' else self.tidal
-        target_client = self.tidal if target_platform == 'tidal' else self.spotify
+            source_client = self.spotify if source_platform == 'spotify' else self.tidal
+            target_client = self.tidal if target_platform == 'tidal' else self.spotify
 
-        # Get source playlist tracks
-        source_tracks = source_client.get_playlist_tracks(playlist['id'])
+            # Get source playlist tracks
+            source_tracks = source_client.get_playlist_tracks(playlist['id'])
 
         # Check if playlist exists on target platform
         target_playlist = next((p for p in target_client.get_playlists() if p['name'] == playlist['name']), None)

@@ -11,6 +11,7 @@ class SpotifyClient:
             scope="playlist-read-private playlist-modify-private"
         ))
 
+    @utils.retry_with_backoff()
     def get_playlists(self):
         playlists = []
         results = self.sp.current_user_playlists()
