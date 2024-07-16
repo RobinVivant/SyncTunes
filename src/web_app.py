@@ -62,4 +62,5 @@ def sync_playlist():
         return jsonify({"error": "Invalid request"}), 400
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=True)
+    logger.info("Starting Flask application")
+    app.run(debug=True, use_reloader=True, host='0.0.0.0', port=5000)
