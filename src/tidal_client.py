@@ -42,7 +42,7 @@ class TidalClient:
                 raise AuthenticationError("Failed to login to Tidal. Please check your credentials.")
             
             logger.info("Tidal login successful")
-            logger.info(f"Tidal session state: {self.session.state}")
+            logger.info("Tidal session logged in successfully")
         except Exception as e:
             logger.exception(f"Tidal authentication failed: {str(e)}")
             raise AuthenticationError(f"Tidal authentication failed: {str(e)}")
